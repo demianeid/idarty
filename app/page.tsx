@@ -1,39 +1,67 @@
-import { ArrowUpRight, Bell, Building2, CalendarDays, ChevronDown, CircleHelp, ClipboardList, FileText, LayoutDashboard, MoreHorizontal, Plus, Search, Settings2, ShieldCheck, Users } from 'lucide-react'
+import Link from 'next/link'
+import { ArrowRight, CalendarCheck2, Check, ChevronRight, Clock3, Menu, ShieldCheck, Sparkles, UsersRound } from 'lucide-react'
 
-const stats = [
-  { label: 'Active tenants', value: '24', change: '+12%', icon: Building2, tone: 'blue' },
-  { label: 'Today\'s bookings', value: '86', change: '+8.4%', icon: CalendarDays, tone: 'violet' },
-  { label: 'Open requests', value: '13', change: '-3.2%', icon: ClipboardList, tone: 'amber' },
-  { label: 'Team members', value: '48', change: '+4', icon: Users, tone: 'emerald' },
+const navigation = [
+  { label: 'How it works', href: '#how-it-works' },
+  { label: 'Features', href: '#features' },
+  { label: 'For businesses', href: '#businesses' },
+  { label: 'Pricing', href: '#pricing' },
 ]
 
-const activity = [
-  ['10:42', 'New booking request', 'Cairo Dental Clinic requested an appointment slot', 'CD'],
-  ['09:18', 'Tenant onboarded', 'Nile Wellness Center joined your platform', 'NW'],
-  ['Yesterday', 'Profile updated', 'Alex Morgan changed notification settings', 'AM'],
+const features = [
+  { icon: CalendarCheck2, title: 'Bookings that fit your business', description: 'Let customers book the right service, with the right team member, at a time that works.' },
+  { icon: Clock3, title: 'Less back-and-forth', description: 'Automated availability and reminders keep every appointment moving without extra admin.' },
+  { icon: UsersRound, title: 'One calm workspace', description: 'Give your team a simple place to manage schedules, customers, and daily requests.' },
 ]
 
 export default function Page() {
   return (
-    <main className="min-h-screen bg-[#f7f8fb] text-[#172033]">
-      <aside className="fixed inset-y-0 left-0 hidden w-[246px] border-r border-[#e7eaf0] bg-white px-5 py-6 lg:block">
-        <div className="flex items-center gap-3 px-2"><div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#315efb] text-sm font-bold text-white">id</div><span className="text-lg font-semibold tracking-tight">idarty</span></div>
-        <div className="mt-10 px-2 text-[11px] font-semibold uppercase tracking-[.14em] text-[#9aa3b2]">Workspace</div>
-        <nav className="mt-3 space-y-1">
-          <NavItem active icon={LayoutDashboard} label="Overview" />
-          <NavItem icon={Building2} label="Tenants" />
-          <NavItem icon={CalendarDays} label="Bookings" />
-          <NavItem icon={ClipboardList} label="Requests" badge="13" />
-          <NavItem icon={Users} label="Team" />
-        </nav>
-        <div className="mt-9 px-2 text-[11px] font-semibold uppercase tracking-[.14em] text-[#9aa3b2]">Manage</div>
-        <nav className="mt-3 space-y-1"><NavItem icon={FileText} label="Reports" /><NavItem icon={Settings2} label="Settings" /></nav>
-        <div className="absolute bottom-6 left-5 right-5 rounded-2xl bg-[#f4f6ff] p-4"><div className="flex items-center gap-2 text-xs font-semibold text-[#315efb]"><ShieldCheck className="h-4 w-4" /> Secure workspace</div><p className="mt-2 text-xs leading-5 text-[#6d7890]">Your data is protected and synced across your team.</p></div>
-      </aside>
-      <section className="lg:pl-[246px]"><header className="flex h-[76px] items-center justify-between border-b border-[#e7eaf0] bg-white px-6 sm:px-10"><div className="flex items-center gap-3"><button className="rounded-lg p-2 text-[#7e899c] lg:hidden"><LayoutDashboard className="h-5 w-5" /></button><div className="relative hidden sm:block"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#a1aaba]" /><input placeholder="Search anything..." className="h-10 w-64 rounded-xl border border-[#e8ebf1] bg-[#fafbfc] pl-10 pr-4 text-sm outline-none placeholder:text-[#a1aaba] focus:border-[#315efb]" /></div></div><div className="flex items-center gap-3"><button className="relative rounded-xl p-2.5 text-[#657188] hover:bg-[#f5f7fb]"><Bell className="h-[18px] w-[18px]" /><span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#f05d68]" /></button><div className="h-7 w-px bg-[#e8ebf1]" /><button className="flex items-center gap-2 rounded-xl p-1.5 pr-2 hover:bg-[#f5f7fb]"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#dce5ff] text-xs font-bold text-[#315efb]">AM</div><span className="hidden text-sm font-medium sm:block">Alex Morgan</span><ChevronDown className="hidden h-4 w-4 text-[#8993a5] sm:block" /></button></div></header><div className="mx-auto max-w-[1380px] px-6 py-8 sm:px-10"><div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="text-sm font-medium text-[#758096]">Tuesday, October 4, 2026</p><h1 className="mt-1 text-[30px] font-semibold tracking-[-.03em]">Good morning, Alex</h1><p className="mt-2 text-sm text-[#788398]">Here&apos;s what&apos;s happening across your workspace today.</p></div><button className="flex w-fit items-center gap-2 rounded-xl bg-[#315efb] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_5px_12px_rgba(49,94,251,.18)]"><Plus className="h-4 w-4" /> Add tenant</button></div><div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{stats.map((stat) => <Stat key={stat.label} {...stat} />)}</div><div className="mt-8 grid gap-5 xl:grid-cols-[1.45fr_1fr]"><div className="rounded-2xl border border-[#e7eaf0] bg-white p-5 sm:p-6"><div className="flex items-center justify-between"><div><h2 className="font-semibold">Workspace activity</h2><p className="mt-1 text-xs text-[#8a94a7]">A summary of recent actions</p></div><button className="rounded-lg p-2 text-[#8791a3] hover:bg-[#f5f7fb]"><MoreHorizontal className="h-5 w-5" /></button></div><div className="mt-6 space-y-5">{activity.map(([time, title, description, initials]) => <div className="flex gap-3" key={title}><div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#eef2ff] text-[10px] font-bold text-[#315efb]">{initials}</div><div className="min-w-0 flex-1"><div className="flex flex-wrap justify-between gap-2"><p className="text-sm font-medium">{title}</p><span className="text-xs text-[#a0a8b7]">{time}</span></div><p className="mt-1 text-xs text-[#7d889b]">{description}</p></div></div>)}</div><button className="mt-6 flex items-center gap-1 text-xs font-semibold text-[#315efb]">View all activity <ArrowUpRight className="h-3.5 w-3.5" /></button></div><div className="rounded-2xl border border-[#e7eaf0] bg-white p-5 sm:p-6"><div className="flex items-center justify-between"><div><h2 className="font-semibold">Upcoming bookings</h2><p className="mt-1 text-xs text-[#8a94a7]">Next 7 days</p></div><button className="text-xs font-semibold text-[#315efb]">View calendar</button></div><div className="mt-5 space-y-3">{[['Today, 2:30 PM','Cairo Dental Clinic','Consultation'],['Wed, 10:00 AM','Nile Wellness Center','Follow-up'],['Thu, 4:15 PM','Alexandria Labs','New appointment']].map(([date, name, type]) => <div className="rounded-xl border border-[#edf0f4] p-3" key={date}><p className="text-[11px] font-semibold text-[#315efb]">{date}</p><p className="mt-1 text-sm font-medium">{name}</p><p className="mt-1 text-xs text-[#8a94a7]">{type}</p></div>)}</div></div></div></div></section>
+    <main className="min-h-screen overflow-hidden bg-[#fbfcff] text-[#172033]">
+      <header className="relative z-10 border-b border-[#e9edf5] bg-white/85 backdrop-blur">
+        <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-6 lg:px-8">
+          <Link href="/" className="flex items-center gap-3" aria-label="idarty home">
+            <span className="flex size-10 items-center justify-center rounded-[13px] bg-[#315efb] text-sm font-bold text-white shadow-[0_8px_20px_rgba(49,94,251,.2)]">id</span>
+            <span className="text-xl font-semibold tracking-[-.04em]">idarty</span>
+          </Link>
+          <nav className="hidden items-center gap-8 md:flex" aria-label="Main navigation">
+            {navigation.map((item) => <a key={item.href} href={item.href} className="text-sm font-medium text-[#69758c] transition hover:text-[#315efb]">{item.label}</a>)}
+          </nav>
+          <div className="flex items-center gap-3">
+            <Link href="/login" className="hidden rounded-xl px-3 py-2 text-sm font-semibold text-[#516078] transition hover:bg-[#f3f6ff] md:block">Log in</Link>
+            <Link href="/signup" className="rounded-xl bg-[#315efb] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(49,94,251,.18)] transition hover:bg-[#244bd4]">Get started</Link>
+            <button className="rounded-xl p-2 text-[#516078] md:hidden" aria-label="Open navigation"><Menu /></button>
+          </div>
+        </div>
+      </header>
+
+      <section className="relative mx-auto max-w-7xl px-6 pb-20 pt-16 lg:px-8 lg:pb-28 lg:pt-24">
+        <div className="pointer-events-none absolute -right-40 -top-20 size-[520px] rounded-full bg-[#e5ebff] opacity-60 blur-3xl" />
+        <div className="relative grid items-center gap-14 lg:grid-cols-[1.02fr_.98fr] lg:gap-20">
+          <div>
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#dce4ff] bg-[#f2f5ff] px-3.5 py-2 text-xs font-semibold text-[#315efb]"><Sparkles className="size-3.5" /> A better way to run your day</div>
+            <h1 className="max-w-2xl text-5xl font-semibold leading-[1.05] tracking-[-.055em] text-[#15203a] sm:text-6xl lg:text-[72px]">Make every booking feel <span className="text-[#315efb]">effortless.</span></h1>
+            <p className="mt-7 max-w-xl text-lg leading-8 text-[#68758d]">idarty gives service businesses one simple place to manage appointments, teams, and customers—so you can spend more time doing meaningful work.</p>
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row"><Link href="/signup" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#315efb] px-5 py-3.5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(49,94,251,.2)] transition hover:bg-[#244bd4]">Start for free <ArrowRight className="size-4" /></Link><a href="#how-it-works" className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#dfe5f0] bg-white px-5 py-3.5 text-sm font-semibold text-[#46536b] transition hover:border-[#b9c8f6]">See how it works <ChevronRight className="size-4" /></a></div>
+            <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm text-[#78859b]"><span className="flex items-center gap-2"><Check className="size-4 text-[#36a875]" /> No credit card required</span><span className="flex items-center gap-2"><Check className="size-4 text-[#36a875]" /> Built for growing teams</span></div>
+          </div>
+          <div className="relative mx-auto w-full max-w-[510px]">
+            <div className="absolute -left-5 top-14 hidden rounded-2xl border border-[#e3e9f6] bg-white p-4 shadow-[0_18px_50px_rgba(46,67,112,.12)] sm:block"><div className="flex items-center gap-2 text-xs font-semibold text-[#52617a]"><span className="flex size-8 items-center justify-center rounded-lg bg-[#e8f8f1] text-[#29a06a]"><CalendarCheck2 className="size-4" /></span> Booking confirmed</div><p className="mt-2 text-xs text-[#8a96a9]">Today at 10:30 AM</p></div>
+            <div className="rounded-[28px] border border-[#e2e8f4] bg-white p-3 shadow-[0_24px_80px_rgba(55,78,130,.14)]"><div className="rounded-[21px] bg-[#f5f7fc] p-5 sm:p-7"><div className="flex items-center justify-between"><div><p className="text-xs font-medium text-[#8995a9]">Tuesday, October 4</p><h2 className="mt-1 text-xl font-semibold tracking-tight text-[#1d2940]">Today&apos;s schedule</h2></div><span className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-[#315efb] shadow-sm">View calendar</span></div><div className="mt-6 flex flex-col gap-3"><ScheduleItem time="09:00" title="Consultation" name="Cairo Dental Clinic" color="blue" /><ScheduleItem time="10:30" title="Follow-up appointment" name="Nile Wellness Center" color="violet" /><ScheduleItem time="12:00" title="Team availability" name="3 members online" color="green" /></div><div className="mt-5 rounded-xl border border-dashed border-[#cbd5ee] bg-white/70 p-3 text-center text-xs font-medium text-[#7d89a0]">Your next available slot is in 30 minutes</div></div></div>
+            <div className="absolute -bottom-5 -right-3 hidden rounded-2xl border border-[#e3e9f6] bg-white p-4 shadow-[0_18px_50px_rgba(46,67,112,.12)] sm:block"><p className="text-[11px] font-semibold uppercase tracking-wider text-[#9aa4b5]">This month</p><p className="mt-1 text-2xl font-semibold text-[#17233b]">+28%</p><p className="text-xs text-[#36a875]">more bookings</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="how-it-works" className="border-y border-[#e9edf5] bg-white px-6 py-16 lg:px-8 lg:py-20"><div className="mx-auto max-w-7xl"><div className="max-w-2xl"><p className="text-sm font-semibold text-[#315efb]">Everything in one place</p><h2 className="mt-3 text-3xl font-semibold tracking-[-.04em] text-[#17233b] sm:text-4xl">A clearer day starts here.</h2><p className="mt-4 text-base leading-7 text-[#758197]">From the first booking to the final reminder, idarty helps your business feel organized and your customers feel looked after.</p></div><div id="features" className="mt-12 grid gap-5 md:grid-cols-3">{features.map((feature) => <div key={feature.title} className="rounded-2xl border border-[#e6ebf4] bg-[#fbfcff] p-6"><span className="flex size-11 items-center justify-center rounded-xl bg-[#eef2ff] text-[#315efb]"><feature.icon className="size-5" /></span><h3 className="mt-5 text-lg font-semibold tracking-tight">{feature.title}</h3><p className="mt-2 text-sm leading-6 text-[#78859b]">{feature.description}</p></div>)}</div></div></section>
+
+      <section id="businesses" className="mx-auto grid max-w-7xl gap-12 px-6 py-20 lg:grid-cols-[.9fr_1.1fr] lg:items-center lg:px-8 lg:py-28"><div><p className="text-sm font-semibold text-[#315efb]">Made for real businesses</p><h2 className="mt-3 text-3xl font-semibold tracking-[-.04em] sm:text-4xl">More care for customers. Less work behind the scenes.</h2><p className="mt-5 leading-7 text-[#758197]">Whether you run a clinic, studio, consultancy, or local service, idarty adapts to how your team already works.</p><Link href="/signup" className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-[#315efb]">Create your workspace <ArrowRight className="size-4" /></Link></div><div className="grid gap-4 sm:grid-cols-2"><QuoteCard quote="We stopped chasing confirmations and started focusing on our clients." name="Mariam Hassan" role="Owner, Nile Wellness Center" /><QuoteCard quote="The whole team knows what is happening next. That changes everything." name="Alex Morgan" role="Operations, Cairo Dental Clinic" /></div></section>
+
+      <section id="pricing" className="mx-6 mb-16 rounded-[28px] bg-[#17233b] px-6 py-14 text-white sm:px-12 lg:mx-auto lg:max-w-7xl lg:px-16"><div className="flex flex-col items-start justify-between gap-8 md:flex-row md:items-center"><div><p className="text-sm font-semibold text-[#aebdff]">Ready when you are</p><h2 className="mt-3 max-w-xl text-3xl font-semibold tracking-[-.04em] sm:text-4xl">Give your business a calmer way to grow.</h2></div><Link href="/signup" className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-semibold text-[#315efb] transition hover:bg-[#eef2ff]">Get started free <ArrowRight className="size-4" /></Link></div></section>
+
+      <footer className="border-t border-[#e9edf5] bg-white"><div className="mx-auto flex max-w-7xl flex-col gap-5 px-6 py-8 text-sm text-[#7c8799] sm:flex-row sm:items-center sm:justify-between lg:px-8"><div className="flex items-center gap-2 font-semibold text-[#24304a]"><span className="flex size-7 items-center justify-center rounded-lg bg-[#315efb] text-[10px] text-white">id</span> idarty</div><div className="flex flex-wrap gap-5"><a href="#features" className="hover:text-[#315efb]">Features</a><a href="#businesses" className="hover:text-[#315efb]">Businesses</a><Link href="/login" className="hover:text-[#315efb]">Log in</Link><Link href="/signup" className="hover:text-[#315efb]">Get started</Link></div><div className="flex items-center gap-2"><ShieldCheck className="size-4" /> Secure by design</div></div></footer>
     </main>
   )
 }
 
-function NavItem({ active, icon: Icon, label, badge }: { active?: boolean; icon: typeof LayoutDashboard; label: string; badge?: string }) { return <button className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${active ? 'bg-[#eef2ff] text-[#315efb]' : 'text-[#758096] hover:bg-[#f7f8fb] hover:text-[#172033]'}`}><Icon className="h-[17px] w-[17px]" /><span className="flex-1 text-left">{label}</span>{badge && <span className="rounded-md bg-[#fff1d7] px-1.5 py-0.5 text-[10px] font-bold text-[#b7791f]">{badge}</span>}</button> }
-function Stat({ label, value, change, icon: Icon, tone }: { label: string; value: string; change: string; icon: typeof Building2; tone: string }) { const tones: Record<string, string> = { blue: 'bg-[#eef2ff] text-[#315efb]', violet: 'bg-[#f2edff] text-[#825ee8]', amber: 'bg-[#fff5df] text-[#c28a22]', emerald: 'bg-[#e8f8f1] text-[#28a06a]' }; return <div className="rounded-2xl border border-[#e7eaf0] bg-white p-5"><div className="flex items-center justify-between"><div className={`flex h-9 w-9 items-center justify-center rounded-xl ${tones[tone]}`}><Icon className="h-[17px] w-[17px]" /></div><span className="text-xs font-semibold text-[#35a672]">{change}</span></div><p className="mt-5 text-2xl font-semibold tracking-tight">{value}</p><p className="mt-1 text-xs text-[#8791a3]">{label}</p></div> }
+function ScheduleItem({ time, title, name, color }: { time: string; title: string; name: string; color: 'blue' | 'violet' | 'green' }) { const colors = { blue: 'bg-[#dfe8ff]', violet: 'bg-[#eee6ff]', green: 'bg-[#ddf5e9]' }; return <div className="flex items-center gap-3 rounded-xl bg-white p-3 shadow-sm"><span className="w-12 text-xs font-semibold text-[#8692a6]">{time}</span><span className={`flex size-9 items-center justify-center rounded-lg ${colors[color]}`}><CalendarCheck2 className="size-4 text-[#526cf2]" /></span><div className="min-w-0"><p className="truncate text-xs font-semibold text-[#354159]">{title}</p><p className="mt-0.5 truncate text-[11px] text-[#929caf]">{name}</p></div></div> }
+function QuoteCard({ quote, name, role }: { quote: string; name: string; role: string }) { return <div className="rounded-2xl border border-[#e5eaf3] bg-white p-6 shadow-[0_12px_35px_rgba(47,68,115,.05)]"><p className="text-base leading-7 text-[#526078]">“{quote}”</p><div className="mt-6 border-t border-[#edf0f5] pt-4"><p className="text-sm font-semibold text-[#26334b]">{name}</p><p className="mt-1 text-xs text-[#8a95a8]">{role}</p></div></div> }
