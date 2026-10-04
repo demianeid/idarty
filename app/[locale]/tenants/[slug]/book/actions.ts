@@ -28,6 +28,11 @@ export async function createPublicBooking(input: z.infer<typeof bookingSchema>) 
     return { ok: false as const, message: data.locale === 'ar' ? 'اختر وقتاً مستقبلياً.' : 'Choose a future time.' }
   }
   const end = new Date(start.getTime() + service.durationMin * 60_000)
+  const requestedDate = start.toISOString().slice(0, 10)
+  const availableSlots = await getAvailableSlots(data.slug, requestedDate)
+  if (!availableSlots.includes(start.toISOString())) {
+    return { ok: false as const, message: data.locale === 'ar' ? 'هذا الوقت لم يعد متاحاً. اختر وقتاً آخر.' : 'That time is no longer available. Choose another time.' }
+  }
   const idempotencyKey = `public-${tenant.id}-${data.phone}-${start.toISOString()}`
 
   const result = await db.transaction(async (tx) => {
