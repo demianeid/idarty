@@ -1,0 +1,22 @@
+"use server"
+
+import { revalidatePath } from 'next/cache'
+import { z } from 'zod'
+import { db } from '@/lib/db'
+import { serviceTranslations, services } from '@/lib/db/schema'
+import { requireTenantAccess } from '@/lib/authz'
+import { headers } from 'next/headers'
+
+const schema = z.object({ slug: z.string().min(1), locale: z.enum(['ar', 'en']), name: z.string().trim().min(2).max(80), description: z.string().trim().max(300).optional(), durationMin: z.coerce.number().int().min(15).max(480), priceAmount: z.coerce.number().min(0).max(1_000_000) })
+
+export async function createService(formData: FormData) {
+  const input = schema.parse({ slug: formData.get('slug'), locale: formData.get('locale'), name: formData.get('name'), description: formData.get('description') || undefined, durationMin: formData.get('durationMin'), priceAmount: formData.get('priceAmount') })
+  const access = await requireTenantAccess(await headers(), input.slug, 'manager')
+  const service = await db.transaction(async (tx) => {
+    const [created] = await tx.insert(services).values({ tenantId: access.tenant.id, durationMin: input.durationMin, priceAmount: input.priceAmount.toFixed(2), sortOrder: 0 }).returning({ id: services.id })
+    await tx.insert(serviceTranslations).values({ tenantId: access.tenant.id, serviceId: created.id, locale: input.locale, name: input.name, description: input.description ?? null })
+    return created
+  })
+  revalidatePath(`/${input.locale}/tenants/${input.slug}/dashboard`)
+  return { ok: true as const, id: service.id }
+}

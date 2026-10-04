@@ -1,0 +1,39 @@
+import { ArrowUpRight, Bell, Building2, CalendarDays, ChevronDown, CircleHelp, ClipboardList, FileText, LayoutDashboard, MoreHorizontal, Plus, Search, Settings2, ShieldCheck, Users } from 'lucide-react'
+
+const stats = [
+  { label: 'Active tenants', value: '24', change: '+12%', icon: Building2, tone: 'blue' },
+  { label: 'Today\'s bookings', value: '86', change: '+8.4%', icon: CalendarDays, tone: 'violet' },
+  { label: 'Open requests', value: '13', change: '-3.2%', icon: ClipboardList, tone: 'amber' },
+  { label: 'Team members', value: '48', change: '+4', icon: Users, tone: 'emerald' },
+]
+
+const activity = [
+  ['10:42', 'New booking request', 'Cairo Dental Clinic requested an appointment slot', 'CD'],
+  ['09:18', 'Tenant onboarded', 'Nile Wellness Center joined your platform', 'NW'],
+  ['Yesterday', 'Profile updated', 'Alex Morgan changed notification settings', 'AM'],
+]
+
+export default function Page() {
+  return (
+    <main className="min-h-screen bg-[#f7f8fb] text-[#172033]">
+      <aside className="fixed inset-y-0 left-0 hidden w-[246px] border-r border-[#e7eaf0] bg-white px-5 py-6 lg:block">
+        <div className="flex items-center gap-3 px-2"><div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#315efb] text-sm font-bold text-white">id</div><span className="text-lg font-semibold tracking-tight">idarty</span></div>
+        <div className="mt-10 px-2 text-[11px] font-semibold uppercase tracking-[.14em] text-[#9aa3b2]">Workspace</div>
+        <nav className="mt-3 space-y-1">
+          <NavItem active icon={LayoutDashboard} label="Overview" />
+          <NavItem icon={Building2} label="Tenants" />
+          <NavItem icon={CalendarDays} label="Bookings" />
+          <NavItem icon={ClipboardList} label="Requests" badge="13" />
+          <NavItem icon={Users} label="Team" />
+        </nav>
+        <div className="mt-9 px-2 text-[11px] font-semibold uppercase tracking-[.14em] text-[#9aa3b2]">Manage</div>
+        <nav className="mt-3 space-y-1"><NavItem icon={FileText} label="Reports" /><NavItem icon={Settings2} label="Settings" /></nav>
+        <div className="absolute bottom-6 left-5 right-5 rounded-2xl bg-[#f4f6ff] p-4"><div className="flex items-center gap-2 text-xs font-semibold text-[#315efb]"><ShieldCheck className="h-4 w-4" /> Secure workspace</div><p className="mt-2 text-xs leading-5 text-[#6d7890]">Your data is protected and synced across your team.</p></div>
+      </aside>
+      <section className="lg:pl-[246px]"><header className="flex h-[76px] items-center justify-between border-b border-[#e7eaf0] bg-white px-6 sm:px-10"><div className="flex items-center gap-3"><button className="rounded-lg p-2 text-[#7e899c] lg:hidden"><LayoutDashboard className="h-5 w-5" /></button><div className="relative hidden sm:block"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#a1aaba]" /><input placeholder="Search anything..." className="h-10 w-64 rounded-xl border border-[#e8ebf1] bg-[#fafbfc] pl-10 pr-4 text-sm outline-none placeholder:text-[#a1aaba] focus:border-[#315efb]" /></div></div><div className="flex items-center gap-3"><button className="relative rounded-xl p-2.5 text-[#657188] hover:bg-[#f5f7fb]"><Bell className="h-[18px] w-[18px]" /><span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#f05d68]" /></button><div className="h-7 w-px bg-[#e8ebf1]" /><button className="flex items-center gap-2 rounded-xl p-1.5 pr-2 hover:bg-[#f5f7fb]"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#dce5ff] text-xs font-bold text-[#315efb]">AM</div><span className="hidden text-sm font-medium sm:block">Alex Morgan</span><ChevronDown className="hidden h-4 w-4 text-[#8993a5] sm:block" /></button></div></header><div className="mx-auto max-w-[1380px] px-6 py-8 sm:px-10"><div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="text-sm font-medium text-[#758096]">Tuesday, October 4, 2026</p><h1 className="mt-1 text-[30px] font-semibold tracking-[-.03em]">Good morning, Alex</h1><p className="mt-2 text-sm text-[#788398]">Here&apos;s what&apos;s happening across your workspace today.</p></div><button className="flex w-fit items-center gap-2 rounded-xl bg-[#315efb] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_5px_12px_rgba(49,94,251,.18)]"><Plus className="h-4 w-4" /> Add tenant</button></div><div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{stats.map((stat) => <Stat key={stat.label} {...stat} />)}</div><div className="mt-8 grid gap-5 xl:grid-cols-[1.45fr_1fr]"><div className="rounded-2xl border border-[#e7eaf0] bg-white p-5 sm:p-6"><div className="flex items-center justify-between"><div><h2 className="font-semibold">Workspace activity</h2><p className="mt-1 text-xs text-[#8a94a7]">A summary of recent actions</p></div><button className="rounded-lg p-2 text-[#8791a3] hover:bg-[#f5f7fb]"><MoreHorizontal className="h-5 w-5" /></button></div><div className="mt-6 space-y-5">{activity.map(([time, title, description, initials]) => <div className="flex gap-3" key={title}><div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#eef2ff] text-[10px] font-bold text-[#315efb]">{initials}</div><div className="min-w-0 flex-1"><div className="flex flex-wrap justify-between gap-2"><p className="text-sm font-medium">{title}</p><span className="text-xs text-[#a0a8b7]">{time}</span></div><p className="mt-1 text-xs text-[#7d889b]">{description}</p></div></div>)}</div><button className="mt-6 flex items-center gap-1 text-xs font-semibold text-[#315efb]">View all activity <ArrowUpRight className="h-3.5 w-3.5" /></button></div><div className="rounded-2xl border border-[#e7eaf0] bg-white p-5 sm:p-6"><div className="flex items-center justify-between"><div><h2 className="font-semibold">Upcoming bookings</h2><p className="mt-1 text-xs text-[#8a94a7]">Next 7 days</p></div><button className="text-xs font-semibold text-[#315efb]">View calendar</button></div><div className="mt-5 space-y-3">{[['Today, 2:30 PM','Cairo Dental Clinic','Consultation'],['Wed, 10:00 AM','Nile Wellness Center','Follow-up'],['Thu, 4:15 PM','Alexandria Labs','New appointment']].map(([date, name, type]) => <div className="rounded-xl border border-[#edf0f4] p-3" key={date}><p className="text-[11px] font-semibold text-[#315efb]">{date}</p><p className="mt-1 text-sm font-medium">{name}</p><p className="mt-1 text-xs text-[#8a94a7]">{type}</p></div>)}</div></div></div></div></section>
+    </main>
+  )
+}
+
+function NavItem({ active, icon: Icon, label, badge }: { active?: boolean; icon: typeof LayoutDashboard; label: string; badge?: string }) { return <button className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${active ? 'bg-[#eef2ff] text-[#315efb]' : 'text-[#758096] hover:bg-[#f7f8fb] hover:text-[#172033]'}`}><Icon className="h-[17px] w-[17px]" /><span className="flex-1 text-left">{label}</span>{badge && <span className="rounded-md bg-[#fff1d7] px-1.5 py-0.5 text-[10px] font-bold text-[#b7791f]">{badge}</span>}</button> }
+function Stat({ label, value, change, icon: Icon, tone }: { label: string; value: string; change: string; icon: typeof Building2; tone: string }) { const tones: Record<string, string> = { blue: 'bg-[#eef2ff] text-[#315efb]', violet: 'bg-[#f2edff] text-[#825ee8]', amber: 'bg-[#fff5df] text-[#c28a22]', emerald: 'bg-[#e8f8f1] text-[#28a06a]' }; return <div className="rounded-2xl border border-[#e7eaf0] bg-white p-5"><div className="flex items-center justify-between"><div className={`flex h-9 w-9 items-center justify-center rounded-xl ${tones[tone]}`}><Icon className="h-[17px] w-[17px]" /></div><span className="text-xs font-semibold text-[#35a672]">{change}</span></div><p className="mt-5 text-2xl font-semibold tracking-tight">{value}</p><p className="mt-1 text-xs text-[#8791a3]">{label}</p></div> }

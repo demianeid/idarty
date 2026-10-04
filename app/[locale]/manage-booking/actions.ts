@@ -1,0 +1,22 @@
+'use server'
+
+import { and, eq } from 'drizzle-orm'
+import { z } from 'zod'
+import { db } from '@/lib/db'
+import { bookings, customers } from '@/lib/db/schema'
+import { sendTransactionalEmail } from '@/lib/email/send'
+import { createBookingManageToken } from '@/lib/booking-manage'
+import { verifyBookingManageToken } from '@/lib/booking-manage'
+
+const inputSchema = z.object({ token: z.string().min(40), locale: z.enum(['ar', 'en']) })
+
+export async function cancelPublicBooking(input: z.infer<typeof inputSchema>) {
+  const data = inputSchema.parse(input)
+  const bookingId = verifyBookingManageToken(data.token)
+  if (!bookingId) return { ok: false as const, message: data.locale === 'ar' ? 'الرابط غير صالح.' : 'This link is invalid.' }
+  const [details] = await db.select({ email: customers.email, startsAt: bookings.startsAt, locale: bookings.locale }).from(bookings).innerJoin(customers, eq(customers.id, bookings.customerId)).where(eq(bookings.id, bookingId)).limit(1)
+  const [booking] = await db.update(bookings).set({ status: 'cancelled', cancelledAt: new Date(), cancelReason: 'customer_request', updatedAt: new Date() }).where(and(eq(bookings.id, bookingId), eq(bookings.status, 'confirmed'))).returning({ id: bookings.id })
+  if (!booking) return { ok: false as const, message: data.locale === 'ar' ? 'لا يمكن إلغاء هذا الموعد.' : 'This appointment cannot be cancelled.' }
+  if (details?.email) await sendTransactionalEmail({ to: details.email, template: 'cancellation', locale: details.locale, startsAt: details.startsAt.toISOString(), url: `${process.env.BETTER_AUTH_URL ?? ''}/${data.locale}/manage-booking?token=${createBookingManageToken(booking.id)}`, idempotencyKey: `booking-cancellation/${booking.id}` }).catch((error) => console.error('[idarty] cancellation email failed', error))
+  return { ok: true as const }
+}
