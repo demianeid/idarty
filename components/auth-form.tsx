@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { FormEvent, useState } from 'react'
 import { authClient } from '@/lib/auth-client'
 
-export function AuthForm({ mode, locale = 'ar' }: { mode: 'login' | 'signup'; locale?: 'ar' | 'en' }) {
+export function AuthForm({ mode, locale = 'ar', nextPath = `/${locale}/dashboard` }: { mode: 'login' | 'signup'; locale?: 'ar' | 'en'; nextPath?: string }) {
   const router = useRouter()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -28,7 +28,7 @@ export function AuthForm({ mode, locale = 'ar' }: { mode: 'login' | 'signup'; lo
     if (mode === 'signup') {
       router.push(`/${locale}/verify-email?email=${encodeURIComponent(email)}`)
     } else {
-      router.push(`/${locale}/dashboard`)
+      router.push(nextPath)
     }
     router.refresh()
   }

@@ -3,13 +3,13 @@
 import { useState } from 'react'
 import { authClient } from '@/lib/auth-client'
 
-export function VerifyEmailForm({ locale, email }: { locale: 'ar' | 'en'; email: string }) {
+export function VerifyEmailForm({ locale, email, nextPath = `/${locale}/onboarding` }: { locale: 'ar' | 'en'; email: string; nextPath?: string }) {
   const [sent, setSent] = useState(false)
   const [pending, setPending] = useState(false)
   async function resend() {
     if (!email) return
     setPending(true)
-    await authClient.sendVerificationEmail({ email, callbackURL: `/${locale}/onboarding` })
+    await authClient.sendVerificationEmail({ email, callbackURL: nextPath })
     setPending(false)
     setSent(true)
   }

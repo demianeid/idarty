@@ -19,7 +19,7 @@ export async function createPublicBooking(input: z.infer<typeof bookingSchema>) 
   const tenant = await db.query.tenants.findFirst({ where: eq(tenants.slug, data.slug) })
   if (!tenant) return { ok: false as const, message: data.locale === 'ar' ? 'المساحة غير موجودة.' : 'Workspace not found.' }
 
-  const service = await db.query.services.findFirst({ where: and(eq(services.tenantId, tenant.id), eq(services.isActive, true)) })
+  const service = await db.query.services.findFirst({ where: and(eq(services.tenantId, tenant.id), eq(services.isActive, true), eq(services.isSample, false)) })
   const person = await db.query.staff.findFirst({ where: and(eq(staff.tenantId, tenant.id), eq(staff.isActive, true)) })
   if (!service || !person) return { ok: false as const, message: data.locale === 'ar' ? 'لا توجد مواعيد متاحة حالياً.' : 'No appointments are available yet.' }
 
@@ -64,7 +64,7 @@ export async function getAvailableSlots(slug: string, date: string) {
   const tenant = await db.query.tenants.findFirst({ where: eq(tenants.slug, slug) })
   if (!tenant || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(date)) return []
   const day = new Date(`${date}T12:00:00Z`).getUTCDay()
-  const service = await db.query.services.findFirst({ where: and(eq(services.tenantId, tenant.id), eq(services.isActive, true)) })
+  const service = await db.query.services.findFirst({ where: and(eq(services.tenantId, tenant.id), eq(services.isActive, true), eq(services.isSample, false)) })
   const person = await db.query.staff.findFirst({ where: and(eq(staff.tenantId, tenant.id), eq(staff.isActive, true)) })
   if (!service || !person) return []
   const hours = await db.query.workingHours.findMany({ where: and(eq(workingHours.tenantId, tenant.id), eq(workingHours.weekday, day), or(isNull(workingHours.staffId), eq(workingHours.staffId, person.id))) })
@@ -89,5 +89,5 @@ export async function getAvailableSlots(slug: string, date: string) {
 export async function getPublicServices(slug: string, locale: 'ar' | 'en') {
   const tenant = await db.query.tenants.findFirst({ where: eq(tenants.slug, slug) })
   if (!tenant) return []
-  return db.select({ id: services.id, name: serviceTranslations.name, durationMin: services.durationMin, priceAmount: services.priceAmount }).from(services).innerJoin(serviceTranslations, and(eq(serviceTranslations.serviceId, services.id), eq(serviceTranslations.locale, locale))).where(and(eq(services.tenantId, tenant.id), eq(services.isActive, true))).limit(20)
+  return db.select({ id: services.id, name: serviceTranslations.name, durationMin: services.durationMin, priceAmount: services.priceAmount }).from(services).innerJoin(serviceTranslations, and(eq(serviceTranslations.serviceId, services.id), eq(serviceTranslations.locale, locale))).where(and(eq(services.tenantId, tenant.id), eq(services.isActive, true), eq(services.isSample, false))).limit(20)
 } 

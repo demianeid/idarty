@@ -13,8 +13,8 @@ export default async function TenantPage({ params }: { params: Promise<{ locale:
   if (!tenant || tenant.status !== 'active') notFound()
   const [translation, serviceRows, hoursRows] = await Promise.all([
     db.query.tenantTranslations.findFirst({ where: and(eq(tenantTranslations.tenantId, tenant.id), eq(tenantTranslations.locale, locale)) }),
-    db.select({ id: services.id, name: serviceTranslations.name, durationMin: services.durationMin, priceAmount: services.priceAmount }).from(services).leftJoin(serviceTranslations, and(eq(serviceTranslations.serviceId, services.id), eq(serviceTranslations.locale, locale))).where(and(eq(services.tenantId, tenant.id), eq(services.isActive, true), isNull(services.deletedAt))).orderBy(services.sortOrder),
-    db.select({ weekday: workingHours.weekday, startTime: workingHours.startTime, endTime: workingHours.endTime }).from(workingHours).where(and(eq(workingHours.tenantId, tenant.id), isNull(workingHours.staffId))).orderBy(workingHours.weekday),
+    db.select({ id: services.id, name: serviceTranslations.name, durationMin: services.durationMin, priceAmount: services.priceAmount }).from(services).leftJoin(serviceTranslations, and(eq(serviceTranslations.serviceId, services.id), eq(serviceTranslations.locale, locale))).where(and(eq(services.tenantId, tenant.id), eq(services.isActive, true), eq(services.isSample, false), isNull(services.deletedAt))).orderBy(services.sortOrder),
+    db.select({ weekday: workingHours.weekday, startTime: workingHours.startTime, endTime: workingHours.endTime }).from(workingHours).where(and(eq(workingHours.tenantId, tenant.id), eq(workingHours.isSample, false), isNull(workingHours.staffId))).orderBy(workingHours.weekday),
   ])
   const businessName = translation?.name ?? tenant.slug
   const businessDescription = translation?.description ?? (rtl ? 'اختر الخدمة والوقت المناسبين لك.' : 'Choose a service and a time that works for you.')
