@@ -4,13 +4,27 @@ import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { db } from '@/lib/db'
-import { staff, staffTranslations } from '@/lib/db/schema'
+import { services, staff, staffServices, staffTranslations } from '@/lib/db/schema'
 import { and, eq } from 'drizzle-orm'
 import { requireTenantAccess } from '@/lib/authz'
 
 const schema = z.object({ slug: z.string().min(1), locale: z.enum(['ar', 'en']), name: z.string().trim().min(2).max(80), email: z.string().email().optional().or(z.literal('')), phone: z.string().trim().max(30).optional() })
 
 const idSchema = z.object({ slug: z.string().min(1), locale: z.enum(['ar', 'en']), staffId: z.string().uuid() })
+
+export async function updateStaffServices(formData: FormData) {
+  const input = z.object({ slug: z.string().min(1), locale: z.enum(['ar', 'en']), staffId: z.string().uuid(), serviceIds: z.array(z.string().uuid()).max(50) }).parse({ slug: formData.get('slug'), locale: formData.get('locale'), staffId: formData.get('staffId'), serviceIds: formData.getAll('serviceIds') })
+  const access = await requireTenantAccess(await headers(), input.slug, 'manager')
+  await db.transaction(async (tx) => {
+    await tx.delete(staffServices).where(and(eq(staffServices.staffId, input.staffId), eq(staffServices.tenantId, access.tenant.id)))
+    const activeServices = input.serviceIds.length ? await tx.select({ id: services.id }).from(services).where(and(eq(services.tenantId, access.tenant.id), eq(services.isActive, true))) : []
+    const allowed = new Set(activeServices.map((service) => service.id))
+    const rows = input.serviceIds.filter((id) => allowed.has(id)).map((serviceId) => ({ tenantId: access.tenant.id, staffId: input.staffId, serviceId }))
+    if (rows.length) await tx.insert(staffServices).values(rows)
+  })
+  revalidatePath(`/${input.locale}/tenants/${input.slug}/dashboard`)
+  return { ok: true as const }
+}
 
 export async function updateStaff(formData: FormData) {
   const input = schema.extend({ staffId: z.string().uuid() }).parse({ slug: formData.get('slug'), locale: formData.get('locale'), name: formData.get('name'), email: formData.get('email') ?? '', phone: formData.get('phone') ?? '', staffId: formData.get('staffId') })
