@@ -34,7 +34,7 @@ export async function sendTransactionalEmail(input: {
   const resend = getResend()
   if (!resend) {
     console.error('[idarty] RESEND_API_KEY is not configured')
-    return
+    throw new Error('EMAIL_NOT_CONFIGURED')
   }
   const { data, error } = await resend.emails.send(
     { from: fromAddress(), to: [input.to], subject: emailSubjects[locale][input.template], html },
