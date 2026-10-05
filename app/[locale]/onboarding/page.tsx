@@ -1,10 +1,19 @@
 import Link from 'next/link'
+import { headers } from 'next/headers'
+import { redirect } from 'next/navigation'
+import { eq } from 'drizzle-orm'
+import { requireSession } from '@/lib/auth'
+import { db } from '@/lib/db'
+import { memberships } from '@/lib/db/schema'
 import { Building2, ShieldCheck } from 'lucide-react'
 import type { Locale } from '@/lib/i18n'
 import { OnboardingForm } from '@/components/onboarding-form'
 
 export default async function OnboardingPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params
+  const session = await requireSession(await headers())
+  const existingMembership = await db.select({ tenantId: memberships.tenantId }).from(memberships).where(eq(memberships.userId, session.user.id)).limit(1)
+  if (existingMembership[0]) redirect(`/${locale}/dashboard`)
   const rtl = locale === 'ar'
   return <main className="min-h-screen bg-[#f7f8fb] text-[#172033]" dir={rtl ? 'rtl' : 'ltr'}>
     <div className="mx-auto max-w-3xl px-6 py-10 sm:px-10">

@@ -100,6 +100,9 @@ export const tenants = pgTable('tenants', {
   supportedLocales: appLocale('supported_locales').array().notNull().default(['ar', 'en']),
   timezone: text('timezone').notNull().default('Africa/Cairo'),
   currency: char('currency', { length: 3 }).notNull().default('EGP'),
+  countryCode: char('country_code', { length: 2 }).notNull().default('EG'),
+  weekStartDay: text('week_start_day').notNull().default('saturday'),
+  numberingSystem: text('numbering_system').notNull().default('latn'),
   phoneE164: text('phone_e164'),
   email: text('email'),
   theme: jsonb('theme').$type<Record<string, string>>().notNull().default({}),
@@ -140,6 +143,7 @@ export const services = pgTable('services', {
   bufferAfterMin: integer('buffer_after_min').notNull().default(0),
   priceAmount: numeric('price_amount', { precision: 12, scale: 2 }).notNull().default('0'),
   isActive: boolean('is_active').notNull().default(true),
+  isSample: boolean('is_sample').notNull().default(false),
   sortOrder: integer('sort_order').notNull().default(0),
   createdAt: tsz('created_at').notNull().defaultNow(),
   updatedAt: tsz('updated_at').notNull().defaultNow(),
@@ -166,6 +170,7 @@ export const staff = pgTable('staff', {
   phoneE164: text('phone_e164'),
   color: text('color'),
   isActive: boolean('is_active').notNull().default(true),
+  isSample: boolean('is_sample').notNull().default(false),
   sortOrder: integer('sort_order').notNull().default(0),
   createdAt: tsz('created_at').notNull().defaultNow(),
   updatedAt: tsz('updated_at').notNull().defaultNow(),
@@ -203,6 +208,7 @@ export const workingHours = pgTable('working_hours', {
   weekday: smallint('weekday').notNull(),
   startTime: time('start_time').notNull(),
   endTime: time('end_time').notNull(),
+  isSample: boolean('is_sample').notNull().default(false),
 })
 
 export const dateOverrides = pgTable('date_overrides', {

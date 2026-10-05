@@ -3,16 +3,18 @@ import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { config } from 'dotenv'
 import { Client } from 'pg'
+import { getDatabaseTestUrl } from '../lib/database-test-guard'
 
 config({ path: ['.env.local', '.env.development.local', '.env'], quiet: true })
 
-// Migrations run over the direct (unpooled) connection: DDL and session-level
-// locks are not safe through PgBouncer's transaction pooling.
-const connectionString = process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL
+const testDatabase = process.env.MIGRATION_TEST_MODE === 'true'
+const testConfig = testDatabase ? getDatabaseTestUrl() : null
+const connectionString = testConfig?.url ?? process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL
 if (!connectionString) {
   console.error('DATABASE_URL_UNPOOLED (or DATABASE_URL) is required')
   process.exit(1)
 }
+if (testConfig) console.log(`Migration test database host: ${testConfig.host}`)
 
 const MIGRATIONS_DIR = path.join(process.cwd(), 'db', 'migrations')
 

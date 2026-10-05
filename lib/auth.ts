@@ -3,6 +3,10 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { db } from '@/lib/db'
 import { sendTransactionalEmail } from '@/lib/email/send'
 
+const skipEmailVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true' || process.env.NODE_ENV !== 'production'
+const productionRuntime = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production'
+if (skipEmailVerification && productionRuntime) throw new Error('SKIP_EMAIL_VERIFICATION cannot be enabled in production')
+
 const runtimeOrigins = [
   process.env.V0_RUNTIME_URL,
   process.env.V0_DEV_APP_URL,
@@ -30,7 +34,7 @@ export const auth = betterAuth({
   ],
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: true,
+    requireEmailVerification: !skipEmailVerification,
     sendResetPassword: async ({ user, url }) => {
       await sendTransactionalEmail({
         to: user.email,

@@ -1,20 +1,23 @@
 import Link from 'next/link'
 import { ArrowRight, CalendarDays, Clock3, MapPin, ShieldCheck, Sparkles } from 'lucide-react'
 import type { Locale } from '@/lib/i18n'
+import { notFound } from 'next/navigation'
 import { and, eq, isNull } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { serviceTranslations, services, tenantTranslations, tenants, workingHours } from '@/lib/db/schema'
+import { shouldShowPublicWorkingHour } from '@/lib/public-hours-policy'
 
 export default async function TenantPage({ params }: { params: Promise<{ locale: Locale; slug: string }> }) {
   const { locale, slug } = await params
   const rtl = locale === 'ar'
   const tenant = await db.query.tenants.findFirst({ where: eq(tenants.slug, slug) })
-  if (!tenant) return <main className="min-h-screen p-10 text-center">{rtl ? 'المساحة غير موجودة' : 'Workspace not found'}</main>
-  const [translation, serviceRows, hoursRows] = await Promise.all([
+  if (!tenant || tenant.status !== 'active') notFound()
+  const [translation, serviceRows, rawHoursRows] = await Promise.all([
     db.query.tenantTranslations.findFirst({ where: and(eq(tenantTranslations.tenantId, tenant.id), eq(tenantTranslations.locale, locale)) }),
-    db.select({ id: services.id, name: serviceTranslations.name, durationMin: services.durationMin, priceAmount: services.priceAmount }).from(services).leftJoin(serviceTranslations, and(eq(serviceTranslations.serviceId, services.id), eq(serviceTranslations.locale, locale))).where(and(eq(services.tenantId, tenant.id), eq(services.isActive, true), isNull(services.deletedAt))).orderBy(services.sortOrder),
-    db.select({ weekday: workingHours.weekday, startTime: workingHours.startTime, endTime: workingHours.endTime }).from(workingHours).where(and(eq(workingHours.tenantId, tenant.id), isNull(workingHours.staffId))).orderBy(workingHours.weekday),
+    db.select({ id: services.id, name: serviceTranslations.name, durationMin: services.durationMin, priceAmount: services.priceAmount }).from(services).leftJoin(serviceTranslations, and(eq(serviceTranslations.serviceId, services.id), eq(serviceTranslations.locale, locale))).where(and(eq(services.tenantId, tenant.id), eq(services.isActive, true), eq(services.isSample, false), isNull(services.deletedAt))).orderBy(services.sortOrder),
+    db.select({ weekday: workingHours.weekday, startTime: workingHours.startTime, endTime: workingHours.endTime, isSample: workingHours.isSample }).from(workingHours).where(and(eq(workingHours.tenantId, tenant.id), isNull(workingHours.staffId))).orderBy(workingHours.weekday),
   ])
+  const hoursRows = rawHoursRows.filter((hour) => shouldShowPublicWorkingHour(hour.isSample))
   const businessName = translation?.name ?? tenant.slug
   const businessDescription = translation?.description ?? (rtl ? 'اختر الخدمة والوقت المناسبين لك.' : 'Choose a service and a time that works for you.')
   const hoursLabel = hoursRows.length ? `${hoursRows[0].startTime}–${hoursRows[0].endTime}` : (rtl ? 'حسب المواعيد المتاحة' : 'By available times')
