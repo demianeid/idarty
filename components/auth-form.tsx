@@ -25,7 +25,11 @@ export function AuthForm({ mode, locale = 'ar' }: { mode: 'login' | 'signup'; lo
       setError('تعذر إتمام العملية. تحقق من البيانات وحاول مرة أخرى.')
       return
     }
-    router.push(`/${locale}`)
+    if (mode === 'signup') {
+      router.push(`/${locale}/verify-email?email=${encodeURIComponent(email)}`)
+    } else {
+      router.push(`/${locale}/dashboard`)
+    }
     router.refresh()
   }
 
