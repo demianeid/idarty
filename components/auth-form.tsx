@@ -26,7 +26,7 @@ export function AuthForm({ mode, locale = 'ar', nextPath = `/${locale}/dashboard
       return
     }
     if (mode === 'signup') {
-      router.push(`/${locale}/verify-email?email=${encodeURIComponent(email)}`)
+      router.push(process.env.NODE_ENV === 'production' ? `/${locale}/verify-email?email=${encodeURIComponent(email)}` : nextPath)
     } else {
       router.push(nextPath)
     }
