@@ -9,8 +9,7 @@ import { db } from '@/lib/db'
 import { memberships, serviceTranslations, services, staff, staffServices, staffTranslations, tenantTranslations, tenants, workingHours } from '@/lib/db/schema'
 import { businessTypes, defaultServiceName, defaultServicePreset, businessTypeLabel } from '@/lib/business-types'
 
-export const onboardingErrorCodes = ['UNAUTHENTICATED', 'INVALID_SLUG', 'SLUG_RESERVED', 'SLUG_TAKEN', 'UNKNOWN'] as const
-export type OnboardingErrorCode = (typeof onboardingErrorCodes)[number]
+type OnboardingErrorCode = 'UNAUTHENTICATED' | 'INVALID_SLUG' | 'SLUG_RESERVED' | 'SLUG_TAKEN' | 'UNKNOWN'
 export type OnboardingResult = { code: OnboardingErrorCode; message: { ar: string; en: string } } | null
 
 const messages: Record<OnboardingErrorCode, { ar: string; en: string }> = {
