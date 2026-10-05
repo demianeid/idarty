@@ -1,9 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
+import { getE2EDatabaseUrl } from './lib/database-test-guard'
 
-const databaseUrl = process.env.DATABASE_URL
-const e2eDatabaseUrl = process.env.E2E_DATABASE_URL
-if (!e2eDatabaseUrl) throw new Error('E2E_DATABASE_URL is required for Playwright tests')
-if (databaseUrl && e2eDatabaseUrl === databaseUrl) throw new Error('Refusing to run E2E tests against DATABASE_URL')
+getE2EDatabaseUrl()
 
 export default defineConfig({
   testDir: './e2e',

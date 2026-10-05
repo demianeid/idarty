@@ -17,7 +17,9 @@ describe('database test guards', () => {
 
   it('applies the same strict guard to E2E', () => {
     expect(getE2EDatabaseUrl({ E2E_DATABASE_URL: good, DATABASE_URL_UNPOOLED: 'postgres://main@ep-main.eu-central-1.aws.neon.tech/db' }).host).toBe('ep-test.eu-central-1.aws.neon.tech')
-    expect(() => getE2EDatabaseUrl({ E2E_DATABASE_URL: good, DATABASE_URL_UNPOOLED: good })).toThrow('Refusing')
+    expect(() => getE2EDatabaseUrl({})).toThrow('E2E_DATABASE_URL is required')
+    expect(() => getE2EDatabaseUrl({ E2E_DATABASE_URL: good, DATABASE_URL: good })).toThrow('Refusing')
+    expect(() => getE2EDatabaseUrl({ E2E_DATABASE_URL: 'postgres://test:pw@ep-test.eu-central-1.aws.neon.tech/db', DATABASE_URL_UNPOOLED: 'postgres://main@ep-test-pooler.eu-central-1.aws.neon.tech/db' })).toThrow('endpoint matches')
     expect(() => getE2EDatabaseUrl({ E2E_DATABASE_URL: 'postgres://u:p@ep-test.ap-southeast-1.aws.neon.tech/db' })).toThrow('eu-central-1')
   })
 })
