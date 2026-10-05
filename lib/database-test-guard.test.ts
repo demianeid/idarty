@@ -5,10 +5,14 @@ const good = 'postgres://user:secret@ep-test.eu-central-1.aws.neon.tech/db'
 
 describe('database test guards', () => {
   it('requires only the dedicated migration URL and prints a credential-free host', () => {
-    expect(getDatabaseTestUrl({ MIGRATION_TEST_DATABASE_URL: good, DATABASE_URL: 'postgres://main@ep-main.eu-central-1.aws.neon.tech/db' })).toEqual({ url: good, host: 'ep-test.eu-central-1.aws.neon.tech' })
+    expect(getDatabaseTestUrl({ MIGRATION_TEST_DATABASE_URL: good, DATABASE_URL: 'postgres://main@ep-main.eu-central-1.aws.neon.tech/db' })).toMatchObject({ url: good, host: 'ep-test.eu-central-1.aws.neon.tech', endpointId: 'ep-test' })
     expect(() => getDatabaseTestUrl({ DATABASE_URL: good })).toThrow('MIGRATION_TEST_DATABASE_URL is required')
     expect(() => getDatabaseTestUrl({ MIGRATION_TEST_DATABASE_URL: good, DATABASE_URL: good })).toThrow('Refusing')
     expect(() => getDatabaseTestUrl({ MIGRATION_TEST_DATABASE_URL: 'postgres://u:p@ep-test.us-east-1.aws.neon.tech/db' })).toThrow('eu-central-1')
+  })
+
+  it('rejects matching Neon endpoint IDs even when URLs differ', () => {
+    expect(() => getDatabaseTestUrl({ MIGRATION_TEST_DATABASE_URL: 'postgres://test:pw@ep-copper.eu-central-1.aws.neon.tech/db', DATABASE_URL: 'postgres://main:pw@ep-copper-pooler.eu-central-1.aws.neon.tech/db' })).toThrow('endpoint matches')
   })
 
   it('applies the same strict guard to E2E', () => {
