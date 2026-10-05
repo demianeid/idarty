@@ -7,6 +7,7 @@ import { db } from '@/lib/db'
 import { services, staff, staffServices, staffTranslations } from '@/lib/db/schema'
 import { and, eq } from 'drizzle-orm'
 import { requireTenantAccess } from '@/lib/authz'
+import { staffAssignmentPatch, staffEditPatch } from '@/lib/phase-b-policy'
 
 const schema = z.object({ slug: z.string().min(1), locale: z.enum(['ar', 'en']), name: z.string().trim().min(2).max(80), email: z.string().email().optional().or(z.literal('')), phone: z.string().trim().max(30).optional() })
 
@@ -16,6 +17,7 @@ export async function updateStaffServices(formData: FormData) {
   const input = z.object({ slug: z.string().min(1), locale: z.enum(['ar', 'en']), staffId: z.string().uuid(), serviceIds: z.array(z.string().uuid()).max(50) }).parse({ slug: formData.get('slug'), locale: formData.get('locale'), staffId: formData.get('staffId'), serviceIds: formData.getAll('serviceIds') })
   const access = await requireTenantAccess(await headers(), input.slug, 'manager')
   await db.transaction(async (tx) => {
+    await tx.update(staff).set({ ...staffAssignmentPatch(), updatedAt: new Date() }).where(and(eq(staff.id, input.staffId), eq(staff.tenantId, access.tenant.id), eq(staff.isActive, true)))
     await tx.delete(staffServices).where(and(eq(staffServices.staffId, input.staffId), eq(staffServices.tenantId, access.tenant.id)))
     const activeServices = input.serviceIds.length ? await tx.select({ id: services.id }).from(services).where(and(eq(services.tenantId, access.tenant.id), eq(services.isActive, true))) : []
     const allowed = new Set(activeServices.map((service) => service.id))
@@ -30,7 +32,7 @@ export async function updateStaff(formData: FormData) {
   const input = schema.extend({ staffId: z.string().uuid() }).parse({ slug: formData.get('slug'), locale: formData.get('locale'), name: formData.get('name'), email: formData.get('email') ?? '', phone: formData.get('phone') ?? '', staffId: formData.get('staffId') })
   const access = await requireTenantAccess(await headers(), input.slug, 'manager')
   await db.transaction(async (tx) => {
-    await tx.update(staff).set({ email: input.email || null, phoneE164: input.phone || null, updatedAt: new Date() }).where(and(eq(staff.id, input.staffId), eq(staff.tenantId, access.tenant.id), eq(staff.isActive, true)))
+    await tx.update(staff).set({ ...staffEditPatch(input.email || null, input.phone || null), updatedAt: new Date() }).where(and(eq(staff.id, input.staffId), eq(staff.tenantId, access.tenant.id), eq(staff.isActive, true)))
     await tx.update(staffTranslations).set({ name: input.name }).where(and(eq(staffTranslations.staffId, input.staffId), eq(staffTranslations.tenantId, access.tenant.id), eq(staffTranslations.locale, input.locale)))
   })
   revalidatePath(`/${input.locale}/tenants/${input.slug}/dashboard`)

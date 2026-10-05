@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "db:migrate": "tsx scripts/migrate.ts",
+    "db:migrate:test": "MIGRATION_TEST_MODE=true tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed.ts",
     "e2e:seed": "tsx scripts/e2e-seed.ts",
     "e2e:cleanup": "tsx scripts/e2e-cleanup.ts",
