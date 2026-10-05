@@ -27,26 +27,29 @@ export async function createTenant(formData: FormData) {
     businessType: formData.get('businessType') ?? 'other',
   })
 
-  const existing = await db.select({ id: tenants.id }).from(tenants).where(eq(tenants.slug, input.slug)).limit(1)
-  if (existing.length) throw new Error('SLUG_TAKEN')
-
+  const reservedSlugs = new Set(['app', 'api', 'admin', 'dashboard', 'login', 'signup', 'onboarding', 'settings', 'book', 'manage-booking', 'tenants'])
+  if (reservedSlugs.has(input.slug)) throw new Error('SLUG_TAKEN')
   const preset = defaultServicePreset(input.businessType)
-  const [tenant] = await db.insert(tenants).values({
-    slug: input.slug,
-    businessType: input.businessType,
-    defaultLocale: input.locale,
-    supportedLocales: ['ar', 'en'],
-  }).returning({ id: tenants.id, slug: tenants.slug })
 
-  await db.transaction(async (tx) => {
-    await tx.insert(tenantTranslations).values(['ar', 'en'].map((locale) => ({ tenantId: tenant.id, locale: locale as 'ar' | 'en', name: input.name, tagline: businessTypeLabel(input.businessType, locale as 'ar' | 'en') })))
-    const [ownerMembership] = await tx.insert(memberships).values({ tenantId: tenant.id, userId: session.user.id, role: 'owner', status: 'active' }).returning({ id: memberships.id })
-    const [defaultService] = await tx.insert(services).values({ tenantId: tenant.id, durationMin: preset.durationMin, priceAmount: preset.priceAmount, sortOrder: 0 }).returning({ id: services.id })
-    await tx.insert(serviceTranslations).values(['ar', 'en'].map((locale) => ({ tenantId: tenant.id, serviceId: defaultService.id, locale: locale as 'ar' | 'en', name: defaultServiceName(input.businessType, locale as 'ar' | 'en') })))
-    const [defaultStaff] = await tx.insert(staff).values({ tenantId: tenant.id, membershipId: ownerMembership.id, email: session.user.email, sortOrder: 0 }).returning({ id: staff.id })
-    await tx.insert(staffTranslations).values(['ar', 'en'].map((locale) => ({ tenantId: tenant.id, staffId: defaultStaff.id, locale: locale as 'ar' | 'en', name: locale === 'ar' ? 'الفريق الرئيسي' : 'Main team' })))
-    await tx.insert(staffServices).values({ tenantId: tenant.id, staffId: defaultStaff.id, serviceId: defaultService.id })
-    await tx.insert(workingHours).values([0, 1, 2, 3, 4, 5].map((weekday) => ({ tenantId: tenant.id, staffId: defaultStaff.id, weekday, startTime: '09:00', endTime: '17:00' })))
+  const tenant = await db.transaction(async (tx) => {
+    const existing = await tx.select({ id: tenants.id }).from(tenants).where(eq(tenants.slug, input.slug)).limit(1)
+    if (existing.length) throw new Error('SLUG_TAKEN')
+    const [createdTenant] = await tx.insert(tenants).values({
+      slug: input.slug,
+      businessType: input.businessType,
+      defaultLocale: input.locale,
+      supportedLocales: ['ar', 'en'],
+    }).returning({ id: tenants.id, slug: tenants.slug })
+
+    await tx.insert(tenantTranslations).values(['ar', 'en'].map((locale) => ({ tenantId: createdTenant.id, locale: locale as 'ar' | 'en', name: input.name, tagline: businessTypeLabel(input.businessType, locale as 'ar' | 'en') })))
+    const [ownerMembership] = await tx.insert(memberships).values({ tenantId: createdTenant.id, userId: session.user.id, role: 'owner', status: 'active' }).returning({ id: memberships.id })
+    const [defaultService] = await tx.insert(services).values({ tenantId: createdTenant.id, durationMin: preset.durationMin, priceAmount: preset.priceAmount, sortOrder: 0 }).returning({ id: services.id })
+    await tx.insert(serviceTranslations).values(['ar', 'en'].map((locale) => ({ tenantId: createdTenant.id, serviceId: defaultService.id, locale: locale as 'ar' | 'en', name: defaultServiceName(input.businessType, locale as 'ar' | 'en') })))
+    const [defaultStaff] = await tx.insert(staff).values({ tenantId: createdTenant.id, membershipId: ownerMembership.id, email: session.user.email, sortOrder: 0 }).returning({ id: staff.id })
+    await tx.insert(staffTranslations).values(['ar', 'en'].map((locale) => ({ tenantId: createdTenant.id, staffId: defaultStaff.id, locale: locale as 'ar' | 'en', name: locale === 'ar' ? 'الفريق الرئيسي' : 'Main team' })))
+    await tx.insert(staffServices).values({ tenantId: createdTenant.id, staffId: defaultStaff.id, serviceId: defaultService.id })
+    await tx.insert(workingHours).values([0, 1, 2, 3, 4, 5].map((weekday) => ({ tenantId: createdTenant.id, staffId: defaultStaff.id, weekday, startTime: '09:00', endTime: '17:00' })))
+    return createdTenant
   })
 
   redirect(`/${input.locale}/tenants/${tenant.slug}/dashboard`)

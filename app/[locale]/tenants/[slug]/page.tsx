@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowRight, CalendarDays, Clock3, MapPin, ShieldCheck, Sparkles } from 'lucide-react'
 import type { Locale } from '@/lib/i18n'
+import { notFound } from 'next/navigation'
 import { and, eq, isNull } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { serviceTranslations, services, tenantTranslations, tenants, workingHours } from '@/lib/db/schema'
@@ -9,7 +10,7 @@ export default async function TenantPage({ params }: { params: Promise<{ locale:
   const { locale, slug } = await params
   const rtl = locale === 'ar'
   const tenant = await db.query.tenants.findFirst({ where: eq(tenants.slug, slug) })
-  if (!tenant) return <main className="min-h-screen p-10 text-center">{rtl ? 'المساحة غير موجودة' : 'Workspace not found'}</main>
+  if (!tenant || tenant.status !== 'active') notFound()
   const [translation, serviceRows, hoursRows] = await Promise.all([
     db.query.tenantTranslations.findFirst({ where: and(eq(tenantTranslations.tenantId, tenant.id), eq(tenantTranslations.locale, locale)) }),
     db.select({ id: services.id, name: serviceTranslations.name, durationMin: services.durationMin, priceAmount: services.priceAmount }).from(services).leftJoin(serviceTranslations, and(eq(serviceTranslations.serviceId, services.id), eq(serviceTranslations.locale, locale))).where(and(eq(services.tenantId, tenant.id), eq(services.isActive, true), isNull(services.deletedAt))).orderBy(services.sortOrder),

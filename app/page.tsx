@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { ArrowRight, CalendarCheck2, Check, ChevronRight, Clock3, Menu, ShieldCheck, Sparkles, UsersRound } from 'lucide-react'
+import { ArrowRight, CalendarCheck2, Check, ChevronRight, Clock3, ShieldCheck, Sparkles, UsersRound } from 'lucide-react'
+import { MobileNav } from '@/components/mobile-nav'
 
 const navigation = [
   { label: 'How it works', href: '#how-it-works' },
@@ -43,7 +44,7 @@ export default function Page({ locale = 'en' }: { locale?: 'ar' | 'en' }) {
           <div className="flex items-center gap-3">
             <Link href={authPath('login')} className="hidden rounded-xl px-3 py-2 text-sm font-semibold text-[#516078] transition hover:bg-[#f3f6ff] md:block">{copy.login}</Link>
             <Link href={authPath('signup')} className="rounded-xl bg-[#315efb] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(49,94,251,.18)] transition hover:bg-[#244bd4]">{copy.getStarted}</Link>
-            <button className="rounded-xl p-2 text-[#516078] md:hidden" aria-label="Open navigation"><Menu /></button>
+            <MobileNav locale={locale} labels={{ open: rtl ? 'فتح القائمة' : 'Open navigation', close: rtl ? 'إغلاق القائمة' : 'Close navigation', links: [{ label: copy.how, href: '#how-it-works' }, { label: copy.features, href: '#features' }, { label: copy.businesses, href: '#businesses' }, { label: copy.pricing, href: '#pricing' }] }} />
           </div>
         </div>
       </header>
