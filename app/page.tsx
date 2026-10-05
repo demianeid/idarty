@@ -16,9 +16,15 @@ const features = [
 
 export default function Page({ locale = 'en' }: { locale?: 'ar' | 'en' }) {
   const authPath = (path: 'login' | 'signup') => locale === 'en' ? `/${path}` : `/${locale}/${path}`
+  const rtl = locale === 'ar'
+  const copy = rtl ? {
+    how: 'كيف يعمل', features: 'المزايا', businesses: 'للشركات', pricing: 'الأسعار', login: 'تسجيل الدخول', getStarted: 'ابدأ الآن', eyebrow: 'طريقة أفضل لإدارة يومك', title: 'اجعل كل حجز أكثر سهولة.', description: 'يمنح idarty الشركات الخدمية مكاناً واحداً لإدارة المواعيد والفرق والعملاء، لتمنح وقتك لما يهم فعلاً.', start: 'ابدأ مجاناً', seeHow: 'اكتشف كيف يعمل', noCard: 'لا تحتاج إلى بطاقة ائتمانية', teams: 'مصمم للفرق النامية', everything: 'كل شيء في مكان واحد', clearer: 'يبدأ اليوم الواضح من هنا.'
+  } : {
+    how: 'How it works', features: 'Features', businesses: 'For businesses', pricing: 'Pricing', login: 'Log in', getStarted: 'Get started', eyebrow: 'A better way to run your day', title: 'Make every booking feel effortless.', description: 'idarty gives service businesses one simple place to manage appointments, teams, and customers—so you can spend more time doing meaningful work.', start: 'Start for free', seeHow: 'See how it works', noCard: 'No credit card required', teams: 'Built for growing teams', everything: 'Everything in one place', clearer: 'A clearer day starts here.'
+  }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#fbfcff] text-[#172033]">
+    <main dir={rtl ? 'rtl' : 'ltr'} className="min-h-screen overflow-hidden bg-[#fbfcff] text-[#172033]">
       <header className="relative z-10 border-b border-[#e9edf5] bg-white/85 backdrop-blur">
         <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-3" aria-label="idarty home">
@@ -26,10 +32,10 @@ export default function Page({ locale = 'en' }: { locale?: 'ar' | 'en' }) {
             <span className="text-xl font-semibold tracking-[-.04em]">idarty</span>
           </Link>
           <nav className="hidden items-center gap-8 md:flex" aria-label="Main navigation">
-            {navigation.map((item) => <a key={item.href} href={item.href} className="text-sm font-medium text-[#69758c] transition hover:text-[#315efb]">{item.label}</a>)}
+            {[{ label: copy.how, href: '#how-it-works' }, { label: copy.features, href: '#features' }, { label: copy.businesses, href: '#businesses' }, { label: copy.pricing, href: '#pricing' }].map((item) => <a key={item.href} href={item.href} className="text-sm font-medium text-[#69758c] transition hover:text-[#315efb]">{item.label}</a>)}
           </nav>
           <div className="flex items-center gap-3">
-            <Link href={authPath('login')} className="hidden rounded-xl px-3 py-2 text-sm font-semibold text-[#516078] transition hover:bg-[#f3f6ff] md:block">Log in</Link>
+            <Link href={authPath('login')} className="hidden rounded-xl px-3 py-2 text-sm font-semibold text-[#516078] transition hover:bg-[#f3f6ff] md:block">{copy.login}</Link>
             <Link href={authPath('signup')} className="rounded-xl bg-[#315efb] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(49,94,251,.18)] transition hover:bg-[#244bd4]">Get started</Link>
             <button className="rounded-xl p-2 text-[#516078] md:hidden" aria-label="Open navigation"><Menu /></button>
           </div>
@@ -40,10 +46,10 @@ export default function Page({ locale = 'en' }: { locale?: 'ar' | 'en' }) {
         <div className="pointer-events-none absolute -right-40 -top-20 size-[520px] rounded-full bg-[#e5ebff] opacity-60 blur-3xl" />
         <div className="relative grid items-center gap-14 lg:grid-cols-[1.02fr_.98fr] lg:gap-20">
           <div>
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#dce4ff] bg-[#f2f5ff] px-3.5 py-2 text-xs font-semibold text-[#315efb]"><Sparkles className="size-3.5" /> A better way to run your day</div>
-            <h1 className="max-w-2xl text-5xl font-semibold leading-[1.05] tracking-[-.055em] text-[#15203a] sm:text-6xl lg:text-[72px]">Make every booking feel <span className="text-[#315efb]">effortless.</span></h1>
-            <p className="mt-7 max-w-xl text-lg leading-8 text-[#68758d]">idarty gives service businesses one simple place to manage appointments, teams, and customers—so you can spend more time doing meaningful work.</p>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row"><Link href={authPath('signup')} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#315efb] px-5 py-3.5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(49,94,251,.2)] transition hover:bg-[#244bd4]">Start for free <ArrowRight className="size-4" /></Link><a href="#how-it-works" className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#dfe5f0] bg-white px-5 py-3.5 text-sm font-semibold text-[#46536b] transition hover:border-[#b9c8f6]">See how it works <ChevronRight className="size-4" /></a></div>
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#dce4ff] bg-[#f2f5ff] px-3.5 py-2 text-xs font-semibold text-[#315efb]"><Sparkles className="size-3.5" /> {copy.eyebrow}</div>
+            <h1 className="max-w-2xl text-5xl font-semibold leading-[1.05] tracking-[-.055em] text-[#15203a] sm:text-6xl lg:text-[72px]">{rtl ? copy.title : <>Make every booking feel <span className="text-[#315efb]">effortless.</span></>}</h1>
+            <p className="mt-7 max-w-xl text-lg leading-8 text-[#68758d]">{copy.description}</p>
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row"><Link href={authPath('signup')} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#315efb] px-5 py-3.5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(49,94,251,.2)] transition hover:bg-[#244bd4]">{copy.start} <ArrowRight className="size-4" /></Link><a href="#how-it-works" className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#dfe5f0] bg-white px-5 py-3.5 text-sm font-semibold text-[#46536b] transition hover:border-[#b9c8f6]">{copy.seeHow} <ChevronRight className="size-4" /></a></div>
             <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm text-[#78859b]"><span className="flex items-center gap-2"><Check className="size-4 text-[#36a875]" /> No credit card required</span><span className="flex items-center gap-2"><Check className="size-4 text-[#36a875]" /> Built for growing teams</span></div>
           </div>
           <div className="relative mx-auto w-full max-w-[510px]">
