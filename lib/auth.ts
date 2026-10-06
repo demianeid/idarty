@@ -3,6 +3,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { db } from '@/lib/db'
 import { sendTransactionalEmail } from '@/lib/email/send'
 import { logAudit } from '@/lib/audit'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 const skipEmailVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true' || process.env.NODE_ENV !== 'production'
 const productionRuntime = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production'
@@ -58,6 +59,24 @@ export const auth = betterAuth({
     },
   },
   hooks: {
+    before: async (ctx) => {
+      const path = (ctx as { path?: string }).path
+      if (path !== '/sign-in/email' && path !== '/sign-up/email') return
+
+      const headers = ctx.headers as Headers | undefined
+      const ip = headers?.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+      const limit = path === '/sign-in/email' ? 10 : 5
+      const windowMs = 15 * 60_000
+
+      const { allowed, resetAt } = await checkRateLimit(`auth:${ip}`, limit, windowMs)
+      if (!allowed) {
+        const retryAfterSec = Math.ceil((resetAt.getTime() - Date.now()) / 1000)
+        throw Object.assign(
+          new Error('Too many attempts. Please try again later.'),
+          { code: 'RATE_LIMITED', retryAfterSec },
+        )
+      }
+    },
     after: async (ctx) => {
       // Early return for non-auth paths to avoid unnecessary processing
       // Note: `path` is available at runtime on the middleware context but not in the type definition
