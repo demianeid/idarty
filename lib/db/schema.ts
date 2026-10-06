@@ -46,6 +46,7 @@ export const user = pgTable('user', {
   emailVerified: boolean('emailVerified').notNull().default(false),
   image: text('image'),
   preferredLocale: text('preferredLocale').notNull().default('ar'),
+  isPlatformAdmin: boolean('isPlatformAdmin').notNull().default(false),
   createdAt: tsz('createdAt').notNull().defaultNow(),
   updatedAt: tsz('updatedAt').notNull().defaultNow(),
 })
@@ -95,6 +96,7 @@ export const tenants = pgTable('tenants', {
   id: uuid('id').primaryKey().defaultRandom(),
   slug: text('slug').notNull().unique(),
   status: tenantStatus('status').notNull().default('active'),
+  plan: text('plan').notNull().default('free'),
   businessType: text('business_type').notNull().default('salon'),
   defaultLocale: appLocale('default_locale').notNull().default('ar'),
   supportedLocales: appLocale('supported_locales').array().notNull().default(['ar', 'en']),

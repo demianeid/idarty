@@ -59,6 +59,7 @@ export const auth = betterAuth({
   user: {
     additionalFields: {
       preferredLocale: { type: 'string', required: false, defaultValue: 'ar' },
+      isPlatformAdmin: { type: 'boolean', required: false, defaultValue: false },
     },
   },
   ...(process.env.NODE_ENV === 'development'

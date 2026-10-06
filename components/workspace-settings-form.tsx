@@ -1,0 +1,43 @@
+'use client'
+
+import { useState } from 'react'
+import { updateWorkspaceSettings } from '@/app/[locale]/tenants/[slug]/dashboard/workspace-actions'
+import { businessTypes, businessTypeLabels, defaultWorkspacePlaceholder, type BusinessType } from '@/lib/business-types'
+import { publicTenantUrl } from '@/lib/routes'
+
+export function WorkspaceSettingsForm({ locale, slug, currentName, currentType }: { locale: 'ar' | 'en', slug: string, currentName: string, currentType: BusinessType }) {
+  const rtl = locale === 'ar'
+  const [isPending, setIsPending] = useState(false)
+  const [businessType, setBusinessType] = useState<BusinessType>(currentType)
+  
+  async function action(formData: FormData) {
+    setIsPending(true)
+    await updateWorkspaceSettings(slug, locale, formData)
+    setIsPending(false)
+  }
+
+  return (
+    <form action={action} className="mt-5 space-y-4">
+      <label className="block text-sm font-semibold">{rtl ? 'اسم مساحة العمل' : 'Workspace name'}
+        <input name="name" defaultValue={currentName} required minLength={2} maxLength={100} className="mt-2 h-12 w-full rounded-xl border border-[#e1e5ed] bg-surface px-4 text-sm outline-none transition focus:border-brand-teal focus:bg-paper focus:ring-4 focus:ring-brand-teal/10" placeholder={defaultWorkspacePlaceholder(businessType, locale)} />
+      </label>
+      
+      <label className="block text-sm font-semibold">{rtl ? 'نوع النشاط' : 'Business type'}
+        <select name="businessType" value={businessType} onChange={(e) => setBusinessType(e.target.value as BusinessType)} className="mt-2 h-12 w-full rounded-xl border border-[#e1e5ed] bg-surface px-4 text-sm outline-none transition focus:border-brand-teal focus:bg-paper focus:ring-4 focus:ring-brand-teal/10">
+          {businessTypes.map((type) => <option key={type} value={type}>{businessTypeLabels[type][locale]}</option>)}
+        </select>
+      </label>
+      
+      <label className="block text-sm font-semibold opacity-70 cursor-not-allowed">{rtl ? 'الرابط المختصر (غير قابل للتعديل)' : 'Workspace URL (Disabled)'}
+        <div className="mt-2 flex items-center overflow-hidden rounded-xl border border-[#e1e5ed] bg-gray-50 opacity-60">
+          <span className="max-w-[55%] truncate px-4 text-sm text-[#9aa3b2]" dir="ltr">{publicTenantUrl(locale, '')}</span>
+          <input disabled value={slug} className="h-12 min-w-0 flex-1 border-0 bg-transparent px-0 text-sm outline-none placeholder:text-left rtl:text-left rtl:pl-4 cursor-not-allowed" dir="ltr" />
+        </div>
+      </label>
+      
+      <button type="submit" disabled={isPending} className="mt-6 flex h-11 items-center justify-center gap-2 rounded-xl bg-brand-teal px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0d6560] disabled:opacity-60">
+        {isPending ? (rtl ? 'جاري الحفظ...' : 'Saving...') : (rtl ? 'حفظ التغييرات' : 'Save changes')}
+      </button>
+    </form>
+  )
+}

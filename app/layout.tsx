@@ -1,42 +1,33 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Noto_Sans_Arabic } from 'next/font/google'
+import { IBM_Plex_Sans_Arabic, IBM_Plex_Sans } from 'next/font/google'
 import './globals.css'
 
-const arabicFont = Noto_Sans_Arabic({
-  subsets: ['arabic', 'latin'],
+const arabicFont = IBM_Plex_Sans_Arabic({
+  subsets: ['arabic'],
+  weight: ['400', '600', '700'],
   variable: '--font-arabic',
   display: 'swap',
 })
 
+const sansFont = IBM_Plex_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-sans',
+  display: 'swap',
+})
+
 export const metadata: Metadata = {
-  title: 'idarty — Workspace platform',
+  title: 'Idarty — Workspace platform',
   description: 'A calm, secure workspace for managing tenants, bookings, and teams.',
-  generator: 'v0.app',
-  icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
-  },
+  // Next.js auto-discovers app/icon.svg, app/favicon.ico, and app/apple-icon.png
 }
 
 export const viewport: Viewport = {
   colorScheme: 'light dark',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: 'white' },
-    { media: '(prefers-color-scheme: dark)', color: 'black' },
+    { media: '(prefers-color-scheme: light)', color: '#0B0B0F' },
+    { media: '(prefers-color-scheme: dark)', color: '#0B0B0F' },
   ],
 }
 
@@ -46,8 +37,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" dir="ltr">
-      <body className={`${arabicFont.variable} antialiased`}>
+    <html lang="ar" dir="rtl">
+      <body className={`${arabicFont.variable} ${sansFont.variable} antialiased`}>
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

@@ -15,6 +15,6 @@ export function DateOverrideForm({ locale, slug }: { locale: Locale; slug: strin
     <label className="text-sm font-semibold">{rtl ? 'الوصف' : 'Label'}<input name="label" placeholder={rtl ? 'عطلة رسمية' : 'Public holiday'} className="mt-2 h-11 w-full rounded-xl border border-[#e1e5ed] px-3" /></label>
     <label className="text-sm font-semibold">{rtl ? 'وقت البداية' : 'Start time'}<input name="startTime" type="time" className="mt-2 h-11 w-full rounded-xl border border-[#e1e5ed] px-3" /></label>
     <label className="text-sm font-semibold">{rtl ? 'وقت النهاية' : 'End time'}<input name="endTime" type="time" className="mt-2 h-11 w-full rounded-xl border border-[#e1e5ed] px-3" /></label>
-    <button disabled={pending} className="h-11 rounded-xl bg-[#315efb] px-4 text-sm font-semibold text-white sm:col-span-2">{pending ? '...' : rtl ? 'إضافة استثناء' : 'Add override'}</button>
+    <button disabled={pending} className="h-11 rounded-xl bg-brand-teal px-4 text-sm font-semibold text-white sm:col-span-2">{pending ? '...' : rtl ? 'إضافة استثناء' : 'Add override'}</button>
   </form>
 }

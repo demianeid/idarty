@@ -1,0 +1,2 @@
+ALTER TABLE "user" ADD COLUMN "isPlatformAdmin" boolean DEFAULT false NOT NULL;
+ALTER TABLE "tenants" ADD COLUMN "plan" text DEFAULT 'free' NOT NULL;

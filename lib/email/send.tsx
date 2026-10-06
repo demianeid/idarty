@@ -2,7 +2,7 @@ import 'server-only'
 
 import { render } from '@react-email/render'
 import { Resend } from 'resend'
-import { BookingCancellationEmail, BookingConfirmationEmail, emailSubjects, ResetPasswordEmail, VerifyEmailEmail, type EmailLocale, type EmailTemplate } from './templates'
+import { BookingCancellationEmail, BookingConfirmationEmail, BookingReminderEmail, emailSubjects, ResetPasswordEmail, VerifyEmailEmail, type EmailLocale, type EmailTemplate } from './templates'
 
 function getResend() {
   const apiKey = process.env.RESEND_API_KEY
@@ -29,7 +29,9 @@ export async function sendTransactionalEmail(input: {
       ? <BookingConfirmationEmail locale={locale} url={input.url} startsAt={input.startsAt ?? new Date().toISOString()} />
       : input.template === 'cancellation'
         ? <BookingCancellationEmail locale={locale} url={input.url} startsAt={input.startsAt ?? new Date().toISOString()} />
-        : <ResetPasswordEmail locale={locale} url={input.url} />
+        : input.template === 'reminder'
+          ? <BookingReminderEmail locale={locale} url={input.url} startsAt={input.startsAt ?? new Date().toISOString()} />
+          : <ResetPasswordEmail locale={locale} url={input.url} />
   const html = await render(element)
   const resend = getResend()
   if (!resend) {

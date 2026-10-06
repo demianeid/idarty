@@ -19,12 +19,19 @@ export async function rescheduleBooking(input: z.infer<typeof inputSchema>) {
   const start = new Date(data.startsAt)
   if (start <= new Date()) return { ok: false as const, message: 'Choose a future time' }
   const end = new Date(start.getTime() + (item.endsAt.getTime() - item.startsAt.getTime()))
-  const conflicts = await db.query.bookingItems.findMany({ where: and(eq(bookingItems.tenantId, access.tenant.id), eq(bookingItems.staffId, item.staffId), ne(bookingItems.bookingId, data.bookingId), eq(bookingItems.status, 'confirmed')) })
-  if (conflicts.some((conflict) => start < conflict.endsAt && end > conflict.startsAt)) return { ok: false as const, message: 'Time is no longer available' }
-  await db.transaction(async (tx) => {
-    await tx.update(bookings).set({ startsAt: start, endsAt: end, updatedAt: new Date() }).where(and(eq(bookings.id, data.bookingId), eq(bookings.tenantId, access.tenant.id), eq(bookings.status, 'confirmed')))
-    await tx.update(bookingItems).set({ startsAt: start, endsAt: end, blockStartsAt: start, blockEndsAt: end }).where(and(eq(bookingItems.bookingId, data.bookingId), eq(bookingItems.tenantId, access.tenant.id)))
-  })
+  const bufferBeforeMs = item.startsAt.getTime() - item.blockStartsAt.getTime()
+  const bufferAfterMs = item.blockEndsAt.getTime() - item.endsAt.getTime()
+  const blockStart = new Date(start.getTime() - bufferBeforeMs)
+  const blockEnd = new Date(end.getTime() + bufferAfterMs)
+  try {
+    await db.transaction(async (tx) => {
+      await tx.update(bookings).set({ startsAt: start, endsAt: end, updatedAt: new Date() }).where(and(eq(bookings.id, data.bookingId), eq(bookings.tenantId, access.tenant.id), eq(bookings.status, 'confirmed')))
+      await tx.update(bookingItems).set({ startsAt: start, endsAt: end, blockStartsAt: blockStart, blockEndsAt: blockEnd }).where(and(eq(bookingItems.bookingId, data.bookingId), eq(bookingItems.tenantId, access.tenant.id)))
+    })
+  } catch (error: any) {
+    if (error.code === '23P01') return { ok: false as const, message: 'Time is no longer available' }
+    throw error
+  }
   if (booking[0].email) {
     const [{ sendTransactionalEmail }, { createBookingManageToken }] = await Promise.all([import('@/lib/email/send'), import('@/lib/booking-manage')])
     await sendTransactionalEmail({

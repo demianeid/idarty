@@ -43,6 +43,23 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* ── Idarty brand tokens (Tailwind utilities) ── */
+  --color-brand-teal:       var(--brand-teal);
+  --color-brand-teal-hover: var(--brand-teal-hover);
+  --color-brand-teal-soft:  var(--brand-teal-soft);
+  --color-paper:            var(--paper);
+  --color-surface:          var(--surface);
+  --color-surface-hover:    var(--surface-hover);
+  --color-ink:              var(--ink);
+  --color-ink-muted:        var(--ink-muted);
+  --color-ink-lighter:      var(--ink-lighter);
+  --color-border-focus:     var(--border-focus);
+  --color-danger:           var(--danger);
+  --color-danger-soft:      var(--danger-soft);
+  --color-success:          var(--success);
+  --color-success-soft:     var(--success-soft);
+  --shadow-float:           var(--shadow-float);
 }
 
 :root {
@@ -79,86 +96,70 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* ── Idarty brand palette ──────────────────────────────────────── */
+  --brand-teal:       #0F766E;
+  --brand-teal-hover: #0D6560;
+  --brand-teal-soft:  #F0FAF9;
+  --paper:            #FFFFFF;
+  --surface:          #F4F5F7;
+  --surface-hover:    #E9EDF5;
+  --ink:              #0B0B0F;
+  --ink-muted:        #516078;
+  --ink-lighter:      #8993A5;
+  --border-focus:     #CBD5EE;
+  --danger:           #DC2626;
+  --danger-soft:      #FEF2F2;
+  --success:          #059669;
+  --success-soft:     #ECFDF5;
+
+  --shadow-float:     0 18px 50px rgba(30, 45, 80, 0.04);
 }
 
-.dark {
-  color-scheme: dark;
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root:not(.light) {
-    color-scheme: dark;
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
-  }
-}
 
 @layer base {
-  :root { font-family: var(--font-arabic), Arial, sans-serif; }
+  /* ── Default: IBM Plex Sans Arabic for all Arabic/body text ── */
+  :root {
+    font-family: var(--font-arabic), var(--font-sans), Arial, sans-serif;
+  }
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-arabic), var(--font-sans), Arial, sans-serif;
+    font-weight: 400; /* Body: IBM Plex Sans Arabic 400 */
   }
+
+  /* ── Headings: IBM Plex Sans Arabic 700 ── */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-arabic), var(--font-sans), Arial, sans-serif;
+    font-weight: 700;
+  }
+
+  /* ── Buttons: IBM Plex Sans Arabic 600 ── */
+  button, [role="button"] {
+    font-family: var(--font-arabic), var(--font-sans), Arial, sans-serif;
+    font-weight: 600;
+  }
+
+  /* ── Numbers: IBM Plex Sans 500 (Latin numerals look better in Plex Sans) ── */
+  [data-numeric], .numeric {
+    font-family: var(--font-sans), Arial, sans-serif;
+    font-weight: 500;
+  }
+  
+  /* Prevent browser autofill from changing the background color to ugly yellow/grey */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover, 
+  input:-webkit-autofill:focus, 
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #f3f4f6 inset !important;
+    -webkit-text-fill-color: #000000 !important;
+  }
+}
+
+.group:hover {
+  border-color: var(--hover-border, var(--border));
 }

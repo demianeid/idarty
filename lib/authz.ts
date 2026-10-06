@@ -2,6 +2,7 @@ import { and, eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { memberships, tenants } from '@/lib/db/schema'
 import { requireSession } from '@/lib/auth'
+import { user } from '@/lib/db/schema'
 
 const roleRank = { receptionist: 1, staff: 2, manager: 3, admin: 4, owner: 5 } as const
 
@@ -16,4 +17,11 @@ export async function requireTenantAccess(headers: Headers, slug: string, minimu
   const access = rows[0]
   if (!access || roleRank[access.membership.role] < roleRank[minimumRole]) throw new Error('FORBIDDEN')
   return { session, ...access }
+}
+
+export async function requirePlatformAdmin(headers: Headers) {
+  const session = await requireSession(headers)
+  // isPlatformAdmin is registered as an additionalField in better-auth and comes through on the session
+  if (!(session.user as any).isPlatformAdmin) throw new Error('FORBIDDEN')
+  return session
 }

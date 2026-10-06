@@ -21,7 +21,7 @@ export async function GET(request: Request) {
         await db.update(notifications).set({ status: 'skipped', lastError: 'Recipient unavailable' }).where(eq(notifications.id, notification.id))
         continue
       }
-      await sendTransactionalEmail({ to: details.email, locale: notification.locale, template: 'booking', startsAt: details.startsAt.toISOString(), url: `${process.env.BETTER_AUTH_URL ?? ''}/${notification.locale}/manage-booking?token=${createBookingManageToken(notification.bookingId!)}`, idempotencyKey: `notification/${notification.id}` })
+      await sendTransactionalEmail({ to: details.email, locale: notification.locale, template: 'reminder', startsAt: details.startsAt.toISOString(), url: `${process.env.BETTER_AUTH_URL ?? ''}/${notification.locale}/manage-booking?token=${createBookingManageToken(notification.bookingId!)}`, idempotencyKey: `notification/${notification.id}` })
       await db.update(notifications).set({ status: 'sent', sentAt: new Date(), providerMessageId: notification.id }).where(and(eq(notifications.id, notification.id), eq(notifications.status, 'processing')))
       sent++
     } catch (error) {

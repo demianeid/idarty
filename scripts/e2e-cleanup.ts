@@ -1,9 +1,9 @@
 import 'dotenv/config'
 import { Client } from 'pg'
+import { getE2EDatabaseUrl } from '../lib/database-test-guard'
 
-const url = process.env.E2E_DATABASE_URL
-if (!url) throw new Error('E2E_DATABASE_URL is required')
-if (url === process.env.DATABASE_URL) throw new Error('Refusing to clean DATABASE_URL')
+const { url } = getE2EDatabaseUrl()
+
 async function main() {
   const client = new Client({ connectionString: url })
   await client.connect()
@@ -12,4 +12,4 @@ async function main() {
   console.log('E2E data cleaned')
 }
 
-void main()
+void main().catch((error) => { console.error(error); process.exitCode = 1 })

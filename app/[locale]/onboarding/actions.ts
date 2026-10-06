@@ -29,6 +29,9 @@ const schema = z.object({
   slug: z.string().trim().toLowerCase().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).min(3).max(48),
   locale: z.enum(['ar', 'en']),
   businessType: z.enum(businessTypes),
+  primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  accentColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  logoBase64: z.string().optional(),
 })
 
 export async function createTenant(_previous: OnboardingResult, formData: FormData): Promise<OnboardingResult> {
@@ -40,6 +43,9 @@ export async function createTenant(_previous: OnboardingResult, formData: FormDa
     slug: formData.get('slug'),
     locale: formData.get('locale') ?? 'ar',
     businessType: formData.get('businessType') ?? 'other',
+    primaryColor: formData.get('primaryColor') || undefined,
+    accentColor: formData.get('accentColor') || undefined,
+    logoBase64: formData.get('logoBase64') || undefined,
   })
   if (!parsed.success) return failure('INVALID_SLUG')
   const input = parsed.data
@@ -48,13 +54,19 @@ export async function createTenant(_previous: OnboardingResult, formData: FormDa
   if (reservedSlugs.has(input.slug)) return failure('SLUG_RESERVED')
   const preset = defaultServicePreset(input.businessType)
 
+  const theme = {
+    primaryColor: input.primaryColor ?? '#0F766E',
+    accentColor: input.accentColor ?? '#f0faf9',
+    ...(input.logoBase64 ? { logo: input.logoBase64 } : {})
+  }
+
   try {
     const tenant = await db.transaction(async (tx) => {
       const existing = await tx.select({ id: tenants.id, slug: tenants.slug }).from(tenants).innerJoin(memberships, eq(memberships.tenantId, tenants.id)).where(and(eq(tenants.slug, input.slug), eq(memberships.userId, session.user.id))).limit(1)
       if (existing.length) return existing[0]
       const taken = await tx.select({ id: tenants.id }).from(tenants).where(eq(tenants.slug, input.slug)).limit(1)
       if (taken.length) throw Object.assign(new Error('SLUG_TAKEN'), { code: '23505' })
-      const [createdTenant] = await tx.insert(tenants).values({ slug: input.slug, businessType: input.businessType, defaultLocale: input.locale, supportedLocales: ['ar', 'en'] }).returning({ id: tenants.id, slug: tenants.slug })
+      const [createdTenant] = await tx.insert(tenants).values({ slug: input.slug, businessType: input.businessType, defaultLocale: input.locale, supportedLocales: ['ar', 'en'], theme }).returning({ id: tenants.id, slug: tenants.slug })
       await tx.insert(tenantTranslations).values(['ar', 'en'].map((locale) => ({ tenantId: createdTenant.id, locale: locale as 'ar' | 'en', name: input.name, tagline: businessTypeLabel(input.businessType, locale as 'ar' | 'en') })))
       const [ownerMembership] = await tx.insert(memberships).values({ tenantId: createdTenant.id, userId: session.user.id, role: 'owner', status: 'active' }).returning({ id: memberships.id })
       const [defaultService] = await tx.insert(services).values({ tenantId: createdTenant.id, durationMin: preset.durationMin, priceAmount: preset.priceAmount, sortOrder: 0, isSample: true }).returning({ id: services.id })
@@ -76,4 +88,17 @@ export async function createTenant(_previous: OnboardingResult, formData: FormDa
 export async function hasTenantSlug(slug: string) {
   const rows = await db.select({ id: tenants.id }).from(tenants).where(and(eq(tenants.slug, slug), eq(tenants.status, 'active'))).limit(1)
   return rows.length > 0
+}
+
+export async function validateSlug(slug: string): Promise<OnboardingErrorCode | null> {
+  const parsed = z.string().trim().toLowerCase().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).min(3).max(48).safeParse(slug)
+  if (!parsed.success) return 'INVALID_SLUG'
+  
+  const reservedSlugs = new Set(['app', 'api', 'admin', 'dashboard', 'login', 'signup', 'onboarding', 'settings', 'book', 'manage-booking', 'tenants'])
+  if (reservedSlugs.has(parsed.data)) return 'SLUG_RESERVED'
+  
+  const taken = await db.select({ id: tenants.id }).from(tenants).where(eq(tenants.slug, parsed.data)).limit(1)
+  if (taken.length) return 'SLUG_TAKEN'
+  
+  return null
 }
