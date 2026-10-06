@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { z } from 'zod'
 import { headers } from 'next/headers'
 import { and, eq, isNull } from 'drizzle-orm'
@@ -19,5 +19,6 @@ export async function saveWorkingHours(formData: FormData) {
     if (!input.closed) await tx.insert(workingHours).values({ tenantId: access.tenant.id, staffId: null, weekday: input.weekday, startTime: input.startTime, endTime: input.endTime })
   })
   revalidatePath(`/${input.locale}/tenants/${input.slug}/dashboard`)
+  revalidateTag(`tenant-public-${input.slug}-${input.locale}`, 'page')
   return { ok: true as const }
 }

@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { headers } from 'next/headers'
 import { z } from 'zod'
 import { and, eq } from 'drizzle-orm'
@@ -20,5 +20,7 @@ export async function updateTenantWebsite(formData: FormData) {
   })
   revalidatePath(`/${input.locale}/tenants/${input.slug}`)
   revalidatePath(`/${input.locale}/tenants/${input.slug}/settings`)
+  revalidateTag(`tenant-public-${input.slug}-${input.locale}`, 'page')
+  revalidateTag(`tenant-services-${input.slug}-${input.locale}`, 'page')
   return { ok: true as const }
 }

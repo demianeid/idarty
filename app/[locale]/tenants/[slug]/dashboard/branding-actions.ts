@@ -3,7 +3,7 @@
 import { headers } from 'next/headers'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { db } from '@/lib/db'
 import { tenants } from '@/lib/db/schema'
 import { requireTenantAccess } from '@/lib/authz'
@@ -34,6 +34,7 @@ export async function saveBrandingColors(input: z.infer<typeof schema>) {
 
   revalidatePath(`/${data.locale}/tenants/${data.slug}/dashboard`)
   revalidatePath(`/${data.locale}/tenants/${data.slug}`)
+  revalidateTag(`tenant-public-${data.slug}-${data.locale}`, 'page')
 
   return { ok: true as const }
 }

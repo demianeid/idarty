@@ -29,10 +29,12 @@ const copy = {
   en: { title: 'Workspace', subtitle: 'A calm view of your day and your team.', appointments: "Today's appointments", customers: 'Customers', services: 'Services', settings: 'Settings', empty: 'No appointments scheduled today.' },
 } as const
 
-export default async function TenantDashboard(props: { params: Promise<{ locale: Locale; slug: string }>; searchParams: Promise<{ tab?: string }> }) {
+export default async function TenantDashboard(props: { params: Promise<{ locale: Locale; slug: string }>; searchParams: Promise<{ tab?: string; page?: string }> }) {
   const { locale, slug } = await props.params
   const searchParams = await props.searchParams
   const tab = searchParams.tab || 'overview'
+  const page = Math.max(1, parseInt(searchParams.page ?? '1', 10) || 1)
+  const pageSize = 12
   const rtl = locale === 'ar'
   const t = copy[locale]
   let access
@@ -73,7 +75,7 @@ export default async function TenantDashboard(props: { params: Promise<{ locale:
     db.select({ value: count() }).from(bookings).where(and(eq(bookings.tenantId, access.tenant.id), gte(bookings.startsAt, startOfDay), lt(bookings.startsAt, endOfDay), not(eq(bookings.status, 'cancelled')))),
     db.select({ value: count() }).from(customers).where(eq(customers.tenantId, access.tenant.id)),
     db.select({ value: count() }).from(services).where(and(eq(services.tenantId, access.tenant.id), eq(services.isActive, true))),
-    db.select({ id: customers.id, name: customers.fullName, phone: customers.phoneE164, email: customers.email, createdAt: customers.createdAt }).from(customers).where(and(eq(customers.tenantId, access.tenant.id), isNull(customers.deletedAt))).orderBy(desc(customers.createdAt)).limit(12),
+    db.select({ id: customers.id, name: customers.fullName, phone: customers.phoneE164, email: customers.email, createdAt: customers.createdAt }).from(customers).where(and(eq(customers.tenantId, access.tenant.id), isNull(customers.deletedAt))).orderBy(desc(customers.createdAt)).limit(pageSize).offset((page - 1) * pageSize),
     db.select({ id: bookings.id, startsAt: bookings.startsAt, status: bookings.status, name: customers.fullName }).from(bookings).innerJoin(customers, eq(customers.id, bookings.customerId)).where(and(eq(bookings.tenantId, access.tenant.id), gte(bookings.startsAt, startOfDay), lt(bookings.startsAt, endOfDay), not(eq(bookings.status, 'cancelled')))).orderBy(bookings.startsAt),
     db.select({ id: bookings.id, startsAt: bookings.startsAt, status: bookings.status, name: customers.fullName }).from(bookings).innerJoin(customers, eq(customers.id, bookings.customerId)).where(and(eq(bookings.tenantId, access.tenant.id), gte(bookings.startsAt, endOfDay), lt(bookings.startsAt, endOfWeek), not(eq(bookings.status, 'cancelled')))).orderBy(bookings.startsAt).limit(10),
     db.select({ id: services.id, durationMin: services.durationMin, priceAmount: services.priceAmount, name: serviceTranslations.name }).from(services).leftJoin(serviceTranslations, and(eq(serviceTranslations.serviceId, services.id), eq(serviceTranslations.locale, locale))).where(and(eq(services.tenantId, access.tenant.id), eq(services.isActive, true))).orderBy(services.sortOrder),
@@ -166,7 +168,15 @@ export default async function TenantDashboard(props: { params: Promise<{ locale:
 
         {tab === 'customers' && (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="mt-9 rounded-3xl border border-border bg-paper p-6 shadow-float"><div className="flex items-center justify-between gap-3"><div><h2 className="text-lg font-semibold">{t.customers}</h2><p className="mt-1 text-sm text-ink-muted">{locale === 'ar' ? 'آخر العملاء الذين حجزوا معك.' : 'The latest customers who booked with you.'}</p></div><span className="rounded-full bg-[#f0faf9] px-3 py-1 text-xs font-semibold text-brand-teal">{customerCount[0]?.value ?? 0}</span></div><div className="mt-5 divide-y divide-border">{customerRows.length === 0 ? <div className="rounded-2xl border border-dashed border-[#dfe4ee] px-5 py-10 text-center text-sm text-ink-muted">{locale === 'ar' ? 'لا يوجد عملاء بعد.' : 'No customers yet.'}</div> : customerRows.map((customer) => <div key={customer.id} className="flex flex-wrap items-center justify-between gap-3 py-4 first:pt-0 last:pb-0"><div><p className="font-semibold">{customer.name}</p><p className="mt-1 text-xs text-ink-muted">{customer.phone}{customer.email ? ` · ${customer.email}` : ''}</p></div><p className="text-xs text-ink-muted">{new Intl.DateTimeFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' }).format(customer.createdAt)}</p></div>)}</div></div>
+            <div className="mt-9 rounded-3xl border border-border bg-paper p-6 shadow-float"><div className="flex items-center justify-between gap-3"><div><h2 className="text-lg font-semibold">{t.customers}</h2><p className="mt-1 text-sm text-ink-muted">{locale === 'ar' ? 'آخر العملاء الذين حجزوا معك.' : 'The latest customers who booked with you.'}</p></div><span className="rounded-full bg-[#f0faf9] px-3 py-1 text-xs font-semibold text-brand-teal">{customerCount[0]?.value ?? 0}</span></div><div className="mt-5 divide-y divide-border">{customerRows.length === 0 ? <div className="rounded-2xl border border-dashed border-[#dfe4ee] px-5 py-10 text-center text-sm text-ink-muted">{locale === 'ar' ? 'لا يوجد عملاء بعد.' : 'No customers yet.'}</div> : customerRows.map((customer) => <div key={customer.id} className="flex flex-wrap items-center justify-between gap-3 py-4 first:pt-0 last:pb-0"><div><p className="font-semibold">{customer.name}</p><p className="mt-1 text-xs text-ink-muted">{customer.phone}{customer.email ? ` · ${customer.email}` : ''}</p></div><p className="text-xs text-ink-muted">{new Intl.DateTimeFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' }).format(customer.createdAt)}</p></div>)}</div>
+              {customerCount[0]?.value > pageSize && (
+                <div className="mt-5 flex items-center justify-center gap-3">
+                  {page > 1 && <a href={`?tab=customers&page=${page - 1}`} className="rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-ink-muted transition hover:border-brand-teal hover:text-brand-teal">{rtl ? '→' : '←'} {rtl ? 'السابق' : 'Previous'}</a>}
+                  <span className="text-sm text-ink-muted">{page} / {Math.ceil((customerCount[0]?.value ?? 0) / pageSize)}</span>
+                  {page * pageSize < (customerCount[0]?.value ?? 0) && <a href={`?tab=customers&page=${page + 1}`} className="rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-ink-muted transition hover:border-brand-teal hover:text-brand-teal">{rtl ? 'التالي' : 'Next'} {rtl ? '←' : '→'}</a>}
+                </div>
+              )}
+            </div>
           </div>
         )}
 

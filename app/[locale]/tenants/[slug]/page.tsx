@@ -3,6 +3,7 @@ import { ArrowRight, CalendarDays, Clock3, MapPin, Phone, ShieldCheck, Sparkles 
 import type { Locale } from '@/lib/i18n'
 import { notFound } from 'next/navigation'
 import { and, eq, isNull } from 'drizzle-orm'
+import { unstable_cache } from 'next/cache'
 import { db } from '@/lib/db'
 import { serviceTranslations, services, tenantTranslations, tenants, workingHours } from '@/lib/db/schema'
 import { shouldShowPublicWorkingHour } from '@/lib/public-hours-policy'
@@ -18,11 +19,34 @@ const WEEKDAY_LABELS: Record<string, { ar: string; en: string }> = {
   '6': { ar: 'السبت', en: 'Sat' },
 }
 
+function createTenantPublicCache(slug: string, locale: Locale) {
+  return unstable_cache(
+    async () => {
+      const tenant = await db.query.tenants.findFirst({ where: eq(tenants.slug, slug) })
+      if (!tenant) return null
+
+      const [translation, serviceRows, rawHoursRows] = await Promise.all([
+        db.query.tenantTranslations.findFirst({ where: and(eq(tenantTranslations.tenantId, tenant.id), eq(tenantTranslations.locale, locale)) }),
+        db.select({ id: services.id, name: serviceTranslations.name, durationMin: services.durationMin, priceAmount: services.priceAmount }).from(services).leftJoin(serviceTranslations, and(eq(serviceTranslations.serviceId, services.id), eq(serviceTranslations.locale, locale))).where(and(eq(services.tenantId, tenant.id), eq(services.isActive, true), eq(services.isSample, false), isNull(services.deletedAt))).orderBy(services.sortOrder),
+        db.select({ weekday: workingHours.weekday, startTime: workingHours.startTime, endTime: workingHours.endTime, isSample: workingHours.isSample }).from(workingHours).where(and(eq(workingHours.tenantId, tenant.id), isNull(workingHours.staffId))).orderBy(workingHours.weekday),
+      ])
+      const hoursRows = rawHoursRows.filter((hour) => shouldShowPublicWorkingHour(hour.isSample))
+
+      return { tenant, translation, serviceRows, hoursRows }
+    },
+    ['tenant-public', slug, locale],
+    { revalidate: 60, tags: [`tenant-public-${slug}-${locale}`] }
+  )
+}
+
 export default async function TenantPage({ params }: { params: Promise<{ locale: Locale; slug: string }> }) {
   const { locale, slug } = await params
   const rtl = locale === 'ar'
-  const tenant = await db.query.tenants.findFirst({ where: eq(tenants.slug, slug) })
-  if (!tenant) notFound()
+  const getTenantData = createTenantPublicCache(slug, locale)
+  const data = await getTenantData()
+  if (!data) notFound()
+  const { tenant, translation, serviceRows, hoursRows } = data
+
   if (tenant.status === 'suspended') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-surface p-6 text-center text-[#172033]" dir={rtl ? 'rtl' : 'ltr'}>
@@ -40,13 +64,6 @@ export default async function TenantPage({ params }: { params: Promise<{ locale:
       </div>
     )
   }
-
-  const [translation, serviceRows, rawHoursRows] = await Promise.all([
-    db.query.tenantTranslations.findFirst({ where: and(eq(tenantTranslations.tenantId, tenant.id), eq(tenantTranslations.locale, locale)) }),
-    db.select({ id: services.id, name: serviceTranslations.name, durationMin: services.durationMin, priceAmount: services.priceAmount }).from(services).leftJoin(serviceTranslations, and(eq(serviceTranslations.serviceId, services.id), eq(serviceTranslations.locale, locale))).where(and(eq(services.tenantId, tenant.id), eq(services.isActive, true), eq(services.isSample, false), isNull(services.deletedAt))).orderBy(services.sortOrder),
-    db.select({ weekday: workingHours.weekday, startTime: workingHours.startTime, endTime: workingHours.endTime, isSample: workingHours.isSample }).from(workingHours).where(and(eq(workingHours.tenantId, tenant.id), isNull(workingHours.staffId))).orderBy(workingHours.weekday),
-  ])
-  const hoursRows = rawHoursRows.filter((hour) => shouldShowPublicWorkingHour(hour.isSample))
 
   const businessName = translation?.name ?? tenant.slug
   const businessTagline = translation?.tagline ?? (rtl ? 'مساحة عمل موثوقة' : 'A trusted workspace')

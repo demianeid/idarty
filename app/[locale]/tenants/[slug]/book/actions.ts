@@ -3,6 +3,7 @@
 import { headers } from 'next/headers'
 import { and, eq, gte, isNull, lte, lt, not, or } from 'drizzle-orm'
 import { z } from 'zod'
+import { unstable_cache } from 'next/cache'
 import { db } from '@/lib/db'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { bookings, bookingItems, customers, dateOverrides, services, serviceTranslations, staff, staffServices, tenants, workingHours } from '@/lib/db/schema'
@@ -173,8 +174,19 @@ export async function getAvailableSlots(slug: string, date: string, serviceId?: 
   return slots
 }
 
+function createPublicServicesCache(slug: string, locale: 'ar' | 'en') {
+  return unstable_cache(
+    async () => {
+      const tenant = await db.query.tenants.findFirst({ where: eq(tenants.slug, slug) })
+      if (!tenant) return []
+      return db.select({ id: services.id, name: serviceTranslations.name, durationMin: services.durationMin, priceAmount: services.priceAmount }).from(services).innerJoin(serviceTranslations, and(eq(serviceTranslations.serviceId, services.id), eq(serviceTranslations.locale, locale))).where(and(eq(services.tenantId, tenant.id), eq(services.isActive, true), eq(services.isSample, false))).limit(20)
+    },
+    ['public-services', slug, locale],
+    { revalidate: 60, tags: [`tenant-services-${slug}-${locale}`] }
+  )
+}
+
 export async function getPublicServices(slug: string, locale: 'ar' | 'en') {
-  const tenant = await db.query.tenants.findFirst({ where: eq(tenants.slug, slug) })
-  if (!tenant) return []
-  return db.select({ id: services.id, name: serviceTranslations.name, durationMin: services.durationMin, priceAmount: services.priceAmount }).from(services).innerJoin(serviceTranslations, and(eq(serviceTranslations.serviceId, services.id), eq(serviceTranslations.locale, locale))).where(and(eq(services.tenantId, tenant.id), eq(services.isActive, true), eq(services.isSample, false))).limit(20)
+  const getCachedPublicServices = createPublicServicesCache(slug, locale)
+  return getCachedPublicServices()
 } 

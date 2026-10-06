@@ -1,7 +1,7 @@
 "use server"
 
 import { headers } from 'next/headers'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { z } from 'zod'
 import { and, eq, isNull } from 'drizzle-orm'
 import { db } from '@/lib/db'
@@ -18,5 +18,6 @@ export async function createDateOverride(formData: FormData) {
   await db.insert(dateOverrides).values({ tenantId: access.tenant.id, staffId: null, startDate: input.startDate, endDate: input.endDate, kind: input.kind, startTime: input.kind === 'custom_hours' ? input.startTime : null, endTime: input.kind === 'custom_hours' ? input.endTime : null, label: input.label || null })
   revalidatePath(`/${input.locale}/tenants/${input.slug}/dashboard`)
   revalidatePath(`/${input.locale}/tenants/${input.slug}/book`)
+  revalidateTag(`tenant-public-${input.slug}-${input.locale}`, 'page')
   return { ok: true as const }
 }
