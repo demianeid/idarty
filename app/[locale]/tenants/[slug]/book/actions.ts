@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { db } from '@/lib/db'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { bookings, bookingItems, customers, dateOverrides, services, serviceTranslations, staff, staffServices, tenants, workingHours } from '@/lib/db/schema'
+import { logAudit } from '@/lib/audit'
 
 const bookingSchema = z.object({
   slug: z.string().min(2).max(80),
@@ -85,6 +86,13 @@ export async function createPublicBooking(input: z.infer<typeof bookingSchema>) 
     throw error
   }
 
+  await logAudit({
+    action: 'booking.created',
+    entityType: 'booking',
+    entityId: result.id,
+    tenantId: tenant.id,
+    metadata: { serviceId: service.id, startsAt: start.toISOString(), source: 'online' },
+  }, await headers())
   if (data.email) {
     const { queueBookingReminder } = await import('@/lib/notifications')
     await queueBookingReminder({ tenantId: tenant.id, bookingId: result.id, recipient: data.email, locale: data.locale, startsAt: start })

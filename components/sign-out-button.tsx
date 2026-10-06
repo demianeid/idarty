@@ -2,7 +2,7 @@
 
 import { authClient } from '@/lib/auth-client'
 
-export function SignOutButton({ label }: { label: string }) {
+export function SignOutButton({ label, locale }: { label: string; locale?: string }) {
   async function signOut() {
     await authClient.signOut()
     window.location.href = '/'

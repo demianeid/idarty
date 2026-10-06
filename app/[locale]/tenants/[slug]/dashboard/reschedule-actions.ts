@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { db } from '@/lib/db'
 import { bookingItems, bookings, customers } from '@/lib/db/schema'
 import { requireTenantAccess } from '@/lib/authz'
+import { logAudit } from '@/lib/audit'
 
 const inputSchema = z.object({ slug: z.string().min(2), bookingId: z.string().uuid(), startsAt: z.string().datetime() })
 
@@ -32,6 +33,14 @@ export async function rescheduleBooking(input: z.infer<typeof inputSchema>) {
     if (error.code === '23P01') return { ok: false as const, message: 'Time is no longer available' }
     throw error
   }
+  await logAudit({
+    actorUserId: access.session.user.id,
+    action: 'booking.rescheduled',
+    entityType: 'booking',
+    entityId: data.bookingId,
+    tenantId: access.tenant.id,
+    metadata: { newStartsAt: start.toISOString() },
+  }, await headers())
   if (booking[0].email) {
     const [{ sendTransactionalEmail }, { createBookingManageToken }] = await Promise.all([import('@/lib/email/send'), import('@/lib/booking-manage')])
     await sendTransactionalEmail({

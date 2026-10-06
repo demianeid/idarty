@@ -22,6 +22,7 @@ import { dateOverrides, staff, staffServices, staffTranslations, tenantTranslati
 import { BrandingForm } from '@/components/branding-form'
 import { WorkspaceSettingsForm } from '@/components/workspace-settings-form'
 import { Logo } from '@/components/logo'
+import { isBusinessType } from '@/lib/business-types'
 
 const copy = {
   ar: { title: 'مساحة العمل', subtitle: 'نظرة هادئة على يومك وإدارة فريقك.', appointments: 'مواعيد اليوم', customers: 'العملاء', services: 'الخدمات', settings: 'الإعدادات', empty: 'لا توجد مواعيد اليوم بعد.' },
@@ -55,7 +56,7 @@ export default async function TenantDashboard(props: { params: Promise<{ locale:
               : 'This workspace has been suspended. Please contact support to restore access.'}
           </p>
           <div className="pt-4">
-            <SignOutButton locale={locale} />
+            <SignOutButton label={rtl ? 'تسجيل الخروج' : 'Sign out'} locale={locale} />
           </div>
         </div>
       </div>
@@ -188,7 +189,7 @@ export default async function TenantDashboard(props: { params: Promise<{ locale:
             <div className="rounded-3xl border border-border bg-paper p-6 shadow-float">
               <h2 className="text-lg font-semibold">{locale === 'ar' ? 'المعلومات الأساسية' : 'Basic information'}</h2>
               <p className="mt-1 text-sm text-ink-muted">{locale === 'ar' ? 'قم بتحديث اسم مساحة عملك ونوع نشاطك.' : 'Update your workspace name and business type.'}</p>
-              <WorkspaceSettingsForm locale={locale} slug={slug} currentName={tenantTranslation?.name ?? access.tenant.slug} currentType={access.tenant.businessType} />
+              <WorkspaceSettingsForm locale={locale} slug={slug} currentName={tenantTranslation?.name ?? access.tenant.slug} currentType={isBusinessType(access.tenant.businessType) ? access.tenant.businessType : 'other'} />
             </div>
             
             <div className="rounded-3xl border border-border bg-paper p-6 shadow-float">

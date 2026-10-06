@@ -8,6 +8,7 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { memberships, serviceTranslations, services, staff, staffServices, staffTranslations, tenantTranslations, tenants, workingHours } from '@/lib/db/schema'
 import { businessTypes, defaultServiceName, defaultServicePreset, businessTypeLabel } from '@/lib/business-types'
+import { logAudit } from '@/lib/audit'
 
 type OnboardingErrorCode = 'UNAUTHENTICATED' | 'INVALID_SLUG' | 'SLUG_RESERVED' | 'SLUG_TAKEN' | 'UNKNOWN'
 export type OnboardingResult = { code: OnboardingErrorCode; message: { ar: string; en: string } } | null
@@ -77,6 +78,14 @@ export async function createTenant(_previous: OnboardingResult, formData: FormDa
       await tx.insert(workingHours).values([0, 1, 2, 3, 4, 5].map((weekday) => ({ tenantId: createdTenant.id, staffId: defaultStaff.id, weekday, startTime: '09:00', endTime: '17:00', isSample: true })))
       return createdTenant
     })
+    await logAudit({
+      actorUserId: session.user.id,
+      action: 'tenant.created',
+      entityType: 'tenant',
+      entityId: tenant.id,
+      tenantId: tenant.id,
+      metadata: { slug: tenant.slug, businessType: input.businessType },
+    }, await headers())
     redirect(`/${input.locale}/tenants/${tenant.slug}/dashboard`)
   } catch (error) {
     if (error instanceof Error && 'digest' in error && String(error.digest).includes('NEXT_REDIRECT')) throw error

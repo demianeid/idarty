@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { db } from '@/lib/db'
 import { sendTransactionalEmail } from '@/lib/email/send'
+import { logAudit } from '@/lib/audit'
 
 const skipEmailVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true' || process.env.NODE_ENV !== 'production'
 const productionRuntime = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production'
@@ -54,6 +55,66 @@ export const auth = betterAuth({
         locale: 'ar',
         idempotencyKey: `verify-email/${user.id}`,
       })
+    },
+  },
+  hooks: {
+    after: async (ctx) => {
+      // Early return for non-auth paths to avoid unnecessary processing
+      // Note: `path` is available at runtime on the middleware context but not in the type definition
+      const path = (ctx as { path?: string }).path
+      const authPaths = ['/sign-in/email', '/sign-up/email', '/change-password', '/reset-password', '/verify-email']
+      if (!path || !authPaths.includes(path)) return
+
+      // Headers are available on the middleware input context
+      const headers = ctx.headers as Headers | undefined
+      const status = (ctx as { status?: string }).status
+      const user = (ctx as { user?: { id: string } }).user
+
+      if (path === '/sign-in/email') {
+        if (status === 'ok') {
+          await logAudit({
+            actorUserId: user?.id,
+            action: 'auth.login.success',
+            entityType: 'user',
+            entityId: user?.id,
+          }, headers)
+        } else {
+          // Do NOT log the raw email address — prevents account enumeration
+          await logAudit({
+            action: 'auth.login.failure',
+            entityType: 'user',
+            metadata: { reason: 'invalid_credentials' },
+          }, headers)
+        }
+      } else if (path === '/sign-up/email' && status === 'ok') {
+        await logAudit({
+          actorUserId: user?.id,
+          action: 'auth.signup',
+          entityType: 'user',
+          entityId: user?.id,
+        }, headers)
+      } else if (path === '/change-password' && status === 'ok') {
+        await logAudit({
+          actorUserId: user?.id,
+          action: 'auth.password.change',
+          entityType: 'user',
+          entityId: user?.id,
+        }, headers)
+      } else if (path === '/reset-password' && status === 'ok') {
+        await logAudit({
+          actorUserId: user?.id,
+          action: 'auth.password.reset',
+          entityType: 'user',
+          entityId: user?.id,
+        }, headers)
+      } else if (path === '/verify-email' && status === 'ok') {
+        await logAudit({
+          actorUserId: user?.id,
+          action: 'auth.email.verified',
+          entityType: 'user',
+          entityId: user?.id,
+        }, headers)
+      }
     },
   },
   user: {
