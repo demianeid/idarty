@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { saveBrandingColors } from '@/app/[locale]/tenants/[slug]/dashboard/branding-actions'
 import type { Locale } from '@/lib/i18n'
+import { useToast } from '@/components/toast'
 
 const PRESET_COLORS = [
   { label: 'idarty Blue', primary: '#0F766E', accent: '#f0faf9' },
@@ -27,6 +28,7 @@ export function BrandingForm({
   currentLogo?: string
 }) {
   const rtl = locale === 'ar'
+  const { toast } = useToast()
   const [pending, startTransition] = useTransition()
   const [primary, setPrimary] = useState(currentPrimary)
   const [accent, setAccent] = useState(currentAccent)
@@ -56,9 +58,11 @@ export function BrandingForm({
     setMessage('')
     startTransition(async () => {
       const result = await saveBrandingColors({ slug, locale, primaryColor: primary, accentColor: accent, logoBase64: logo })
-      setMessage(result.ok
+      const msg = result.ok
         ? (rtl ? '✓ تم حفظ الهوية البصرية' : '✓ Branding saved')
-        : (result.message ?? (rtl ? 'تعذر الحفظ' : 'Could not save')))
+        : (result.message ?? (rtl ? 'تعذر الحفظ' : 'Could not save'))
+      setMessage(msg)
+      toast(result.ok ? 'success' : 'error', msg)
     })
   }
 

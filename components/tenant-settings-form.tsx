@@ -2,9 +2,20 @@
 
 import { useActionState } from 'react'
 import { updateTenantWebsite } from '@/app/[locale]/tenants/[slug]/settings/actions'
+import { useToast } from '@/components/toast'
 
 export function TenantSettingsForm({ slug, locale, initial }: { slug: string; locale: 'ar' | 'en'; initial: { name: string; tagline: string; description: string; address: string; phone: string; email: string; defaultLocale: 'ar' | 'en'; supportedLocales: string; timezone: string; currency: string } }) {
-  const [state, action, pending] = useActionState(async (_: { ok: boolean; message?: string } | null, formData: FormData) => updateTenantWebsite(formData), null)
+  const { toast } = useToast()
+  const [state, action, pending] = useActionState(async (_: { ok: boolean; message?: string } | null, formData: FormData) => {
+    try {
+      const result = await updateTenantWebsite(formData)
+      if (result.ok) toast('success', rtl ? 'تم حفظ التغييرات' : 'Changes saved')
+      return result
+    } catch {
+      toast('error', rtl ? 'تعذر الحفظ' : 'Could not save')
+      return null
+    }
+  }, null)
   const rtl = locale === 'ar'
   const fields = [
     ['name', rtl ? 'اسم النشاط' : 'Business name', initial.name],

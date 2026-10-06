@@ -4,15 +4,22 @@ import { useState } from 'react'
 import { updateWorkspaceSettings } from '@/app/[locale]/tenants/[slug]/dashboard/workspace-actions'
 import { businessTypes, businessTypeLabels, defaultWorkspacePlaceholder, type BusinessType } from '@/lib/business-types'
 import { publicTenantUrl } from '@/lib/routes'
+import { useToast } from '@/components/toast'
 
 export function WorkspaceSettingsForm({ locale, slug, currentName, currentType }: { locale: 'ar' | 'en', slug: string, currentName: string, currentType: BusinessType }) {
   const rtl = locale === 'ar'
+  const { toast } = useToast()
   const [isPending, setIsPending] = useState(false)
   const [businessType, setBusinessType] = useState<BusinessType>(currentType)
   
   async function action(formData: FormData) {
     setIsPending(true)
-    await updateWorkspaceSettings(slug, locale, formData)
+    try {
+      await updateWorkspaceSettings(slug, locale, formData)
+      toast('success', rtl ? 'تم حفظ التغييرات' : 'Changes saved')
+    } catch {
+      toast('error', rtl ? 'تعذر الحفظ' : 'Could not save')
+    }
     setIsPending(false)
   }
 

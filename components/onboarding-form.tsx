@@ -6,6 +6,7 @@ import { businessTypes, businessTypeLabels, defaultWorkspacePlaceholder, type Bu
 import { publicTenantUrl } from '@/lib/routes'
 import { Building2, Palette, PartyPopper, ShieldCheck, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react'
 import { Logo } from '@/components/logo'
+import { useToast } from '@/components/toast'
 
 const PRESET_COLORS = [
   { label: 'idarty Blue', primary: '#0F766E', accent: '#f0faf9' },
@@ -26,6 +27,7 @@ const messages: Record<string, { ar: string; en: string }> = {
 
 export function OnboardingForm({ locale }: { locale: 'ar' | 'en' }) {
   const rtl = locale === 'ar'
+  const { toast } = useToast()
   const [state, action, pending] = useActionState(createTenant, null)
   
   const [step, setStep] = useState(1)
@@ -205,6 +207,7 @@ export function OnboardingForm({ locale }: { locale: 'ar' | 'en' }) {
             </div>
 
             {state && <p role="alert" aria-live="polite" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{state.message[locale]}</p>}
+            {state && (toast('error', state.message[locale]), null)}
 
             <div className="mt-8 flex items-center gap-3">
               <button type="button" onClick={prevStep} disabled={pending} className="flex h-12 w-full flex-1 items-center justify-center gap-2 rounded-xl border border-[#e1e5ed] bg-paper text-sm font-semibold text-[#516078] shadow-sm outline-none transition hover:bg-surface focus-visible:ring-4 focus-visible:ring-brand-teal/20 disabled:opacity-50">
