@@ -4,6 +4,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useState, useTransition, useCallback } from 'react'
 import { createPublicBooking } from '@/app/[locale]/tenants/[slug]/book/actions'
 import type { Locale } from '@/lib/i18n'
+import { useToast } from '@/components/toast'
 
 type Service = { id: string; name: string | null; durationMin: number; priceAmount: string }
 
@@ -13,6 +14,7 @@ export function BookingForm({ locale, slug, slots, services, defaultServiceId }:
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const { toast } = useToast()
   const [message, setMessage] = useState('')
   const [suggestions, setSuggestions] = useState<string[]>([])
   const formatSlot = (slot: string) => new Intl.DateTimeFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(slot))
@@ -30,9 +32,12 @@ export function BookingForm({ locale, slug, slots, services, defaultServiceId }:
     setSuggestions([])
     startTransition(async () => {
       const result = await createPublicBooking({ slug, locale, serviceId: String(form.get('serviceId')), fullName: String(form.get('fullName')), phone: String(form.get('phone')), email: String(form.get('email') || ''), startsAt: new Date(String(form.get('startsAt'))).toISOString() })
-      if (result.ok) router.push(`/${locale}/tenants/${slug}/book/confirmed?booking=${result.bookingId}`)
-      else {
+      if (result.ok) {
+        toast('success', rtl ? 'تم تأكيد الحجز بنجاح' : 'Booking confirmed successfully')
+        router.push(`/${locale}/tenants/${slug}/book/confirmed?booking=${result.bookingId}`)
+      } else {
         setMessage(result.message)
+        toast('error', result.message)
         if ('suggestions' in result && result.suggestions) setSuggestions(result.suggestions)
       }
     })

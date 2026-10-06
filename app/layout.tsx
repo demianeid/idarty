@@ -1,6 +1,7 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { IBM_Plex_Sans_Arabic, IBM_Plex_Sans } from 'next/font/google'
+import { ToastProvider } from '@/components/toast'
 import './globals.css'
 
 const arabicFont = IBM_Plex_Sans_Arabic({
@@ -39,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl">
       <body className={`${arabicFont.variable} ${sansFont.variable} antialiased`}>
-        {children}
+        <ToastProvider>{children}</ToastProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

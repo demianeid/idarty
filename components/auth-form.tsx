@@ -6,9 +6,11 @@ import { FormEvent, useState, useRef, useEffect } from 'react'
 import { Loader2, Eye, EyeOff, AlertCircle } from 'lucide-react'
 import { authClient } from '@/lib/auth-client'
 import { Logo } from '@/components/logo'
+import { useToast } from '@/components/toast'
 
 export function AuthForm({ mode, locale = 'ar', nextPath = `/${locale}/dashboard` }: { mode: 'login' | 'signup'; locale?: 'ar' | 'en'; nextPath?: string }) {
   const router = useRouter()
+  const { toast } = useToast()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -69,7 +71,9 @@ export function AuthForm({ mode, locale = 'ar', nextPath = `/${locale}/dashboard
     setPending(false)
     
     if (result.error) {
-      setGeneralError(result.error.message || (locale === 'ar' ? 'تعذر إتمام العملية. تحقق من البيانات وحاول مرة أخرى.' : 'Something went wrong. Please check your details and try again.'))
+      const msg = result.error.message || (locale === 'ar' ? 'تعذر إتمام العملية. تحقق من البيانات وحاول مرة أخرى.' : 'Something went wrong. Please check your details and try again.')
+      setGeneralError(msg)
+      toast('error', msg)
       return
     }
     
