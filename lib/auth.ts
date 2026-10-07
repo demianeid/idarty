@@ -1,4 +1,5 @@
 import { betterAuth } from 'better-auth'
+import { createAuthMiddleware } from 'better-auth/api'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { db } from '@/lib/db'
 import { sendTransactionalEmail } from '@/lib/email/send'
@@ -59,7 +60,7 @@ export const auth = betterAuth({
     },
   },
   hooks: {
-    before: async (ctx) => {
+    before: createAuthMiddleware(async (ctx) => {
       const path = (ctx as { path?: string }).path
       if (path !== '/sign-in/email' && path !== '/sign-up/email') return
 
@@ -76,8 +77,8 @@ export const auth = betterAuth({
           { code: 'RATE_LIMITED', retryAfterSec },
         )
       }
-    },
-    after: async (ctx) => {
+    }),
+    after: createAuthMiddleware(async (ctx) => {
       // Early return for non-auth paths to avoid unnecessary processing
       // Note: `path` is available at runtime on the middleware context but not in the type definition
       const path = (ctx as { path?: string }).path
@@ -86,11 +87,23 @@ export const auth = betterAuth({
 
       // Headers are available on the middleware input context
       const headers = ctx.headers as Headers | undefined
-      const status = (ctx as { status?: string }).status
-      const user = (ctx as { user?: { id: string } }).user
+      const ctxAny = ctx as any
+      const returned = ctxAny.context?.returned
+      const hasError =
+        returned instanceof Error ||
+        returned?.status === 'UNAUTHORIZED' ||
+        returned?.status === 'BAD_REQUEST' ||
+        (typeof returned?.statusCode === 'number' && returned.statusCode >= 400)
+      const isSuccess =
+        ctxAny.status === 'ok' ||
+        (returned !== undefined && !hasError && ctxAny.status !== 'unauthorized')
+      const user =
+        ctxAny.user ??
+        ctxAny.context?.newSession?.user ??
+        (returned && !hasError ? returned.user : undefined)
 
       if (path === '/sign-in/email') {
-        if (status === 'ok') {
+        if (isSuccess) {
           await logAudit({
             actorUserId: user?.id,
             action: 'auth.login.success',
@@ -105,28 +118,28 @@ export const auth = betterAuth({
             metadata: { reason: 'invalid_credentials' },
           }, headers)
         }
-      } else if (path === '/sign-up/email' && status === 'ok') {
+      } else if (path === '/sign-up/email' && isSuccess) {
         await logAudit({
           actorUserId: user?.id,
           action: 'auth.signup',
           entityType: 'user',
           entityId: user?.id,
         }, headers)
-      } else if (path === '/change-password' && status === 'ok') {
+      } else if (path === '/change-password' && isSuccess) {
         await logAudit({
           actorUserId: user?.id,
           action: 'auth.password.change',
           entityType: 'user',
           entityId: user?.id,
         }, headers)
-      } else if (path === '/reset-password' && status === 'ok') {
+      } else if (path === '/reset-password' && isSuccess) {
         await logAudit({
           actorUserId: user?.id,
           action: 'auth.password.reset',
           entityType: 'user',
           entityId: user?.id,
         }, headers)
-      } else if (path === '/verify-email' && status === 'ok') {
+      } else if (path === '/verify-email' && isSuccess) {
         await logAudit({
           actorUserId: user?.id,
           action: 'auth.email.verified',
@@ -134,7 +147,7 @@ export const auth = betterAuth({
           entityId: user?.id,
         }, headers)
       }
-    },
+    }),
   },
   user: {
     additionalFields: {

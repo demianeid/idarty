@@ -49,8 +49,9 @@ export function Logo({ locale = 'ar', height = 32, className = '' }: LogoProps) 
         src={lightSrc}
         alt={altText}
         height={effectiveHeight}
-        width={effectiveHeight * 4}   /* rough intrinsic ratio; object-contain handles the rest */
-        className="h-full w-auto object-contain dark:hidden"
+        width={0}
+        style={{ width: 'auto' }}
+        className="h-full object-contain dark:hidden"
         priority
       />
       {/* Dark-mode logo (hidden by default, visible in .dark) */}
@@ -58,8 +59,9 @@ export function Logo({ locale = 'ar', height = 32, className = '' }: LogoProps) 
         src={darkSrc}
         alt={altText}
         height={effectiveHeight}
-        width={effectiveHeight * 4}
-        className="hidden h-full w-auto object-contain dark:block"
+        width={0}
+        style={{ width: 'auto' }}
+        className="hidden h-full object-contain dark:block"
         priority
       />
     </span>
@@ -87,16 +89,18 @@ export function LogoIcon({ height = 32, className = '' }: LogoIconProps) {
         src="/brand/icon-black.svg"
         alt="Idarty"
         height={height}
-        width={height}
-        className="h-full w-auto object-contain dark:hidden"
+        width={0}
+        style={{ width: 'auto' }}
+        className="h-full object-contain dark:hidden"
         priority
       />
       <Image
         src="/brand/icon-white.svg"
         alt="Idarty"
         height={height}
-        width={height}
-        className="hidden h-full w-auto object-contain dark:block"
+        width={0}
+        style={{ width: 'auto' }}
+        className="hidden h-full object-contain dark:block"
         priority
       />
     </span>
