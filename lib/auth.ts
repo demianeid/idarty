@@ -6,7 +6,7 @@ import { sendTransactionalEmail } from '@/lib/email/send'
 import { logAudit } from '@/lib/audit'
 import { checkRateLimit } from '@/lib/rate-limit'
 
-const skipEmailVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true' || process.env.NODE_ENV !== 'production'
+const skipEmailVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true'
 const productionRuntime = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production'
 if (skipEmailVerification && productionRuntime) throw new Error('SKIP_EMAIL_VERIFICATION cannot be enabled in production')
 
@@ -155,7 +155,7 @@ export const auth = betterAuth({
       isPlatformAdmin: { type: 'boolean', required: false, defaultValue: false },
     },
   },
-  ...(process.env.NODE_ENV === 'development'
+  ...(process.env.NODE_ENV === 'development' && baseURL.startsWith('https')
     ? {
         advanced: {
           defaultCookieAttributes: {

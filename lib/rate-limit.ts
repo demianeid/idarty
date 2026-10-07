@@ -3,7 +3,7 @@ import { db } from '@/lib/db'
 import { rateLimits } from '@/lib/db/schema'
 
 /**
- * Sliding-window rate limiter backed by Postgres.
+ * Fixed-window rate limiter backed by Postgres.
  *
  * Uses an UPSERT so there is no need for a separate read-before-write.
  * Old windows are automatically reset instead of accumulating rows.

@@ -13,9 +13,6 @@ const inputSchema = z.object({ slug: z.string().min(2), bookingId: z.string().uu
 export async function cancelBooking(input: z.infer<typeof inputSchema>) {
   const data = inputSchema.parse(input)
   const access = await requireTenantAccess(await headers(), data.slug, 'manager')
-  if (!['owner', 'admin', 'manager'].includes(access.membership.role)) {
-    return { ok: false as const, message: 'Not authorized' }
-  }
   const booking = await db.select({ id: bookings.id, startsAt: bookings.startsAt, locale: bookings.locale, email: customers.email }).from(bookings).innerJoin(customers, eq(customers.id, bookings.customerId)).where(and(eq(bookings.id, data.bookingId), eq(bookings.tenantId, access.tenant.id), eq(bookings.status, 'confirmed'))).limit(1)
   const result = await db.update(bookings).set({ status: 'cancelled', cancelledAt: new Date(), updatedAt: new Date() }).where(and(eq(bookings.id, data.bookingId), eq(bookings.tenantId, access.tenant.id), eq(bookings.status, 'confirmed'))).returning({ id: bookings.id })
   if (result.length) {
@@ -44,9 +41,6 @@ export async function cancelBooking(input: z.infer<typeof inputSchema>) {
 export async function markNoShow(input: z.infer<typeof inputSchema>) {
   const data = inputSchema.parse(input)
   const access = await requireTenantAccess(await headers(), data.slug, 'manager')
-  if (!['owner', 'admin', 'manager'].includes(access.membership.role)) {
-    return { ok: false as const, message: 'Not authorized' }
-  }
   const result = await db.update(bookings).set({ status: 'no_show', updatedAt: new Date() }).where(and(eq(bookings.id, data.bookingId), eq(bookings.tenantId, access.tenant.id), eq(bookings.status, 'confirmed'))).returning({ id: bookings.id })
   if (result.length) {
     await logAudit({

@@ -60,7 +60,7 @@ export function BrandingForm({
       const result = await saveBrandingColors({ slug, locale, primaryColor: primary, accentColor: accent, logoBase64: logo })
       const msg = result.ok
         ? (rtl ? '✓ تم حفظ الهوية البصرية' : '✓ Branding saved')
-        : (result.message ?? (rtl ? 'تعذر الحفظ' : 'Could not save'))
+        : (rtl ? 'تعذر الحفظ' : 'Could not save')
       setMessage(msg)
       toast(result.ok ? 'success' : 'error', msg)
     })

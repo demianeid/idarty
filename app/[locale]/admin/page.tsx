@@ -1,9 +1,12 @@
+import { headers } from 'next/headers'
 import { db } from '@/lib/db'
 import { tenants, memberships, user } from '@/lib/db/schema'
 import { desc, eq } from 'drizzle-orm'
+import { requirePlatformAdmin } from '@/lib/authz'
 import { TenantAdminActions } from './tenant-admin-actions'
 
 export default async function AdminPage() {
+  await requirePlatformAdmin(await headers())
   // Fetch all tenants with their owner's info
   const allTenants = await db
     .select({

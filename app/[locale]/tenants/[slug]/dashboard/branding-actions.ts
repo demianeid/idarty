@@ -20,9 +20,6 @@ const schema = z.object({
 export async function saveBrandingColors(input: z.infer<typeof schema>) {
   const data = schema.parse(input)
   const access = await requireTenantAccess(await headers(), data.slug, 'admin')
-  if (!['owner', 'admin'].includes(access.membership.role)) {
-    return { ok: false as const, message: 'Not authorized' }
-  }
 
   const current = await db.query.tenants.findFirst({ where: eq(tenants.slug, data.slug) })
   const currentTheme = (current?.theme ?? {}) as Record<string, string>

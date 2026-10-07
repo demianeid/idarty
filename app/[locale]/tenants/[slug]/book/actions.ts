@@ -119,6 +119,7 @@ export async function getAvailableSlots(slug: string, date: string, serviceId?: 
 
   const tenant = await db.query.tenants.findFirst({ where: eq(tenants.slug, slug) })
   if (!tenant || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(date)) return []
+  if (tenant.status !== 'active') return []
   const day = new Date(`${date}T12:00:00Z`).getUTCDay()
   
   const service = serviceId 

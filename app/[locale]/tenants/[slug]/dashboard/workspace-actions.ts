@@ -15,7 +15,7 @@ const schema = z.object({
 })
 
 export async function updateWorkspaceSettings(slug: string, locale: 'ar' | 'en', formData: FormData) {
-  const access = await requireTenantAccess(await headers(), slug)
+  const access = await requireTenantAccess(await headers(), slug, 'manager')
   
   const parsed = schema.safeParse({
     name: formData.get('name'),

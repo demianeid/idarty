@@ -1,6 +1,12 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
 
-const secret = () => process.env.BETTER_AUTH_SECRET ?? 'development-only-secret'
+const secret = () => {
+  const s = process.env.BETTER_AUTH_SECRET
+  if (!s && process.env.NODE_ENV === 'production') {
+    throw new Error('BETTER_AUTH_SECRET is required in production')
+  }
+  return s ?? 'development-only-secret'
+}
 
 /**
  * Configurable token lifetime in hours (default 72 = 3 days).

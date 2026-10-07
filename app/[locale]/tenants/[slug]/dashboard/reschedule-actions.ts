@@ -13,7 +13,6 @@ const inputSchema = z.object({ slug: z.string().min(2), bookingId: z.string().uu
 export async function rescheduleBooking(input: z.infer<typeof inputSchema>) {
   const data = inputSchema.parse(input)
   const access = await requireTenantAccess(await headers(), data.slug, 'manager')
-  if (!['owner', 'admin', 'manager'].includes(access.membership.role)) return { ok: false as const, message: 'Not authorized' }
   const item = await db.query.bookingItems.findFirst({ where: and(eq(bookingItems.bookingId, data.bookingId), eq(bookingItems.tenantId, access.tenant.id)) })
   const booking = await db.select({ locale: bookings.locale, email: customers.email }).from(bookings).innerJoin(customers, eq(customers.id, bookings.customerId)).where(and(eq(bookings.id, data.bookingId), eq(bookings.tenantId, access.tenant.id))).limit(1)
   if (!item || !booking[0]) return { ok: false as const, message: 'Booking not found' }

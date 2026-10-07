@@ -1,11 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { defaultLocale, getLocaleFromHeader } from './lib/i18n'
-import { Pool } from 'pg'
+import { pool } from './lib/db'
 
 const crawlerPattern = /bot|crawler|spider|crawling|slurp|bingpreview|facebookexternalhit|twitterbot/i
-
-// Reuse pool across requests in the same process.
-const pool = new Pool({ connectionString: process.env.DATABASE_URL! })
 
 async function isAllowed(key: string, limit: number, windowMs: number): Promise<boolean> {
   const windowStart = new Date(Math.floor(Date.now() / windowMs) * windowMs)
@@ -26,9 +23,10 @@ async function isAllowed(key: string, limit: number, windowMs: number): Promise<
       [key, windowStart],
     )
     return (result.rows[0]?.count ?? 1) <= limit
-  } catch {
-    // If the DB check fails, allow the request rather than blocking all users.
-    return true
+  } catch (error) {
+    // Fail closed: if the rate-limit check fails, deny the request.
+    console.error('[proxy] rate-limit check failed', error instanceof Error ? error.message : 'Unknown error')
+    return false
   }
 }
 

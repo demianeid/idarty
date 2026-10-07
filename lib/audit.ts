@@ -46,5 +46,17 @@ export async function logAudit(entry: AuditEntry, headers?: Headers) {
       entityType: entry.entityType,
       error: error instanceof Error ? error.message : 'Unknown error',
     })
+    // Report to Sentry if available (never expose secrets/tokens in the error)
+    try {
+      const Sentry = require('@sentry/nextjs')
+      if (Sentry && Sentry.captureException) {
+        Sentry.captureException(error, {
+          tags: { component: 'audit' },
+          extra: { action: entry.action, entityType: entry.entityType },
+        })
+      }
+    } catch {
+      // Sentry not available — console.error above is the fallback
+    }
   }
 }
