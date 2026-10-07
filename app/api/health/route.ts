@@ -26,7 +26,7 @@ export async function GET() {
 
   // Email configuration check
   try {
-    const emailConfigured = Boolean(process.env.RESEND_API_KEY)
+    const emailConfigured = Boolean(process.env.GMAIL_SMTP_USER && process.env.GMAIL_SMTP_APP_PASSWORD)
     components.email = emailConfigured ? 'configured' : 'not_configured'
   } catch {
     components.email = 'error'

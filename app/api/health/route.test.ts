@@ -34,8 +34,10 @@ describe('health check endpoint', () => {
   })
 
   it('returns healthy status when all components are ok', async () => {
-    const originalKey = process.env.RESEND_API_KEY
-    process.env.RESEND_API_KEY = 'test-key'
+    const originalUser = process.env.GMAIL_SMTP_USER
+    const originalPass = process.env.GMAIL_SMTP_APP_PASSWORD
+    process.env.GMAIL_SMTP_USER = 'test@gmail.com'
+    process.env.GMAIL_SMTP_APP_PASSWORD = 'test-password'
 
     const { GET } = await import('./route')
     const response = await GET()
@@ -47,8 +49,10 @@ describe('health check endpoint', () => {
     expect(data.components.email).toBe('configured')
     expect(data.timestamp).toBeDefined()
 
-    if (originalKey) process.env.RESEND_API_KEY = originalKey
-    else delete process.env.RESEND_API_KEY
+    if (originalUser) process.env.GMAIL_SMTP_USER = originalUser
+    else delete process.env.GMAIL_SMTP_USER
+    if (originalPass) process.env.GMAIL_SMTP_APP_PASSWORD = originalPass
+    else delete process.env.GMAIL_SMTP_APP_PASSWORD
   })
 
   it('returns error status when database is unhealthy', async () => {
@@ -63,9 +67,9 @@ describe('health check endpoint', () => {
     expect(data.components.database).toBe('unhealthy')
   })
 
-  it('reports email as not configured when RESEND_API_KEY is missing', async () => {
-    const originalKey = process.env.RESEND_API_KEY
-    delete process.env.RESEND_API_KEY
+  it('reports email as not configured when GMAIL_SMTP_USER is missing', async () => {
+    const originalUser = process.env.GMAIL_SMTP_USER
+    delete process.env.GMAIL_SMTP_USER
 
     const { GET } = await import('./route')
     const response = await GET()
@@ -73,7 +77,7 @@ describe('health check endpoint', () => {
 
     expect(data.components.email).toBe('not_configured')
 
-    if (originalKey) process.env.RESEND_API_KEY = originalKey
+    if (originalUser) process.env.GMAIL_SMTP_USER = originalUser
   })
 
   it('reports cron status based on last run', async () => {
@@ -121,7 +125,8 @@ describe('health check endpoint', () => {
     expect(data).not.toHaveProperty('env')
     expect(data).not.toHaveProperty('secrets')
     expect(data).not.toHaveProperty('config')
-    expect(JSON.stringify(data)).not.toContain('RESEND_API_KEY')
+    expect(JSON.stringify(data)).not.toContain('GMAIL_SMTP_USER')
+    expect(JSON.stringify(data)).not.toContain('GMAIL_SMTP_APP_PASSWORD')
     expect(JSON.stringify(data)).not.toContain('DATABASE_URL')
   })
 })

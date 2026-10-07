@@ -49,13 +49,14 @@ export const auth = betterAuth({
     },
   },
   emailVerification: {
+    autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
       await sendTransactionalEmail({
         to: user.email,
         template: 'verify',
         url,
-        locale: 'ar',
-        idempotencyKey: `verify-email/${user.id}`,
+        locale: (user as any).preferredLocale === 'en' ? 'en' : 'ar',
+        idempotencyKey: `verify-email/${user.id}-${Date.now()}`,
       })
     },
   },

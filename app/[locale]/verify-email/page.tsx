@@ -1,12 +1,45 @@
-import Link from 'next/link'
+import { headers } from 'next/headers'
+import { redirect } from 'next/navigation'
+import { getSession } from '@/lib/auth'
 import type { Locale } from '@/lib/i18n'
-import { VerifyEmailForm } from '@/components/verify-email-form'
+import { isLocale } from '@/lib/i18n'
+import { VerifyEmailCard } from '@/components/verify-email-form'
 import { safeNextPath } from '@/lib/safe-next'
 
-export default async function VerifyEmailPage({ params, searchParams }: { params: Promise<{ locale: Locale }>; searchParams: Promise<{ email?: string; next?: string }> }) {
-  const { locale } = await params
-  const { email, next } = await searchParams
+export default async function VerifyEmailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>
+  searchParams: Promise<{ email?: string; next?: string; error?: string }>
+}) {
+  const { locale: rawLocale } = await params
+  const { email, next, error } = await searchParams
+  const locale: Locale = isLocale(rawLocale) ? rawLocale : 'ar'
+
+  const session = await getSession(await headers())
+  // If the user already has a session and is already emailVerified, redirect immediately to onboarding
+  if (session?.user?.emailVerified) {
+    redirect(safeNextPath(next, `/${locale}/onboarding`))
+  }
+
+  // Safely extract email from query param or session user
+  const safeEmail = email || session?.user?.email || ''
   const nextPath = safeNextPath(next, `/${locale}/onboarding`)
-  const rtl = locale === 'ar'
-  return <main dir={rtl ? 'rtl' : 'ltr'} className="min-h-screen bg-[#f7f8f6] px-6 py-10 text-[#17211e]"><div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-md flex-col justify-center"><Link href={`/${locale}`} className="mb-10 text-sm font-bold tracking-[0.18em] text-[#167c72]">idarty</Link><div className="rounded-3xl border border-[#dce5df] bg-paper p-7 shadow-[0_24px_70px_rgba(28,51,44,0.08)]"><h1 className="text-3xl font-semibold">{rtl ? 'تحقق من بريدك الإلكتروني' : 'Verify your email'}</h1><p className="mt-3 text-sm leading-6 text-[#65736d]">{rtl ? 'أرسلنا رابط تحقق إلى بريدك الإلكتروني. تحقق من صندوق الوارد أو أعد الإرسال.' : 'We sent a verification link to your email. Check your inbox or send it again.'}</p><VerifyEmailForm locale={locale} email={email ?? ''} nextPath={nextPath} /></div></div></main>
+
+  return (
+    <main
+      className="min-h-screen bg-surface px-6 py-10 text-ink"
+      dir={locale === 'ar' ? 'rtl' : 'ltr'}
+    >
+      <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-md flex-col justify-center">
+        <VerifyEmailCard
+          locale={locale}
+          email={safeEmail}
+          nextPath={nextPath}
+          initialError={error}
+        />
+      </div>
+    </main>
+  )
 }
