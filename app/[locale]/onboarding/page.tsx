@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { eq } from 'drizzle-orm'
-import { requireSession } from '@/lib/auth'
+import { getSession } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { memberships } from '@/lib/db/schema'
 import { Building2, ShieldCheck } from 'lucide-react'
@@ -11,7 +11,10 @@ import { OnboardingForm } from '@/components/onboarding-form'
 
 export default async function OnboardingPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params
-  const session = await requireSession(await headers())
+  const session = await getSession(await headers())
+  if (!session) {
+    redirect(`/${locale}/login?next=/${locale}/onboarding`)
+  }
   const existingMembership = await db.select({ tenantId: memberships.tenantId }).from(memberships).where(eq(memberships.userId, session.user.id)).limit(1)
   if (existingMembership[0]) redirect(`/${locale}/dashboard`)
   const rtl = locale === 'ar'

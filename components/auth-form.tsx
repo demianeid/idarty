@@ -78,7 +78,12 @@ export function AuthForm({ mode, locale = 'ar', nextPath = `/${locale}/dashboard
     }
     
     if (mode === 'signup') {
-      router.push(process.env.NODE_ENV === 'production' ? `/${locale}/verify-email?email=${encodeURIComponent(email)}` : nextPath)
+      const session = await authClient.getSession()
+      if (session.data) {
+        router.push(nextPath)
+      } else {
+        router.push(`/${locale}/verify-email?email=${encodeURIComponent(email)}`)
+      }
     } else {
       router.push(nextPath)
     }
@@ -165,7 +170,7 @@ export function AuthForm({ mode, locale = 'ar', nextPath = `/${locale}/dashboard
                   value={password} 
                   onChange={(e) => { setPassword(e.target.value); if (passwordError) setPasswordError(''); }} 
                   onBlur={handlePasswordBlur}
-                  className={`w-full rounded-2xl border bg-surface/50 px-4 py-3.5 pe-12 text-base outline-none transition-colors hover:border-brand-teal/30 focus:bg-paper focus:ring-4 focus:ring-brand-teal/10 ${passwordError ? 'border-red-400 focus:border-red-500 focus:ring-red-500/10' : 'border-border focus:border-brand-teal'}`} 
+                  className={`w-full rounded-2xl border bg-surface/50 px-4 py-3.5 pe-12 text-base outline-none transition-colors hover:border-brand-teal/30 focus:bg-paper focus:ring-4 focus:ring-brand-teal/10 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden ${passwordError ? 'border-red-400 focus:border-red-500 focus:ring-red-500/10' : 'border-border focus:border-brand-teal'}`} 
                   aria-invalid={!!passwordError}
                   aria-describedby={passwordError ? "password-error" : undefined}
                 />

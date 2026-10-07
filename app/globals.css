@@ -158,6 +158,15 @@
     -webkit-box-shadow: 0 0 0 30px #f3f4f6 inset !important;
     -webkit-text-fill-color: #000000 !important;
   }
+
+  /* Hide the native browser password-reveal eye (Chrome, Edge, Safari).
+     We render our own toggle button so showing both would duplicate the icon. */
+  input[type="password"]::-ms-reveal,
+  input[type="password"]::-ms-clear,
+  input[type="password"]::-webkit-contacts-auto-fill-button,
+  input[type="password"]::-webkit-credentials-auto-fill-button {
+    display: none !important;
+  }
 }
 
 .group:hover {

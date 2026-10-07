@@ -35,6 +35,12 @@ export async function sendTransactionalEmail(input: {
   const html = await render(element)
   const resend = getResend()
   if (!resend) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`\n📧 [DEV EMAIL] To: ${input.to}`)
+      console.log(`📧 [DEV EMAIL] Template: ${input.template}`)
+      console.log(`📧 [DEV EMAIL] URL: ${input.url}\n`)
+      return { id: 'dev-email-mock' }
+    }
     console.error('[idarty] RESEND_API_KEY is not configured')
     throw new Error('EMAIL_NOT_CONFIGURED')
   }
