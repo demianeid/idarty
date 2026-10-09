@@ -66,7 +66,12 @@ export function AuthForm({ mode, locale = 'ar', nextPath = `/${locale}/dashboard
     
     const result = mode === 'login'
       ? await authClient.signIn.email({ email, password })
-      : await authClient.signUp.email({ name, email, password })
+      : await authClient.signUp.email({
+          name,
+          email,
+          password,
+          callbackURL: `/${locale}/onboarding`,
+        })
       
     setPending(false)
     
@@ -79,7 +84,7 @@ export function AuthForm({ mode, locale = 'ar', nextPath = `/${locale}/dashboard
     
     if (mode === 'signup') {
       const session = await authClient.getSession()
-      if (session.data) {
+      if (session.data?.user && (session.data.user as any).emailVerified !== false) {
         router.push(nextPath)
       } else {
         router.push(`/${locale}/verify-email?email=${encodeURIComponent(email)}`)
