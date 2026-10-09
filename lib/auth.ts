@@ -17,16 +17,31 @@ const runtimeOrigins = [
   process.env.V0_SANDBOX_URL,
 ].filter((value): value is string => Boolean(value))
 
-const baseURL =
-  process.env.BETTER_AUTH_URL ||
-  process.env.VERCEL_PROJECT_PRODUCTION_URL ||
-  process.env.VERCEL_URL ||
-  process.env.V0_RUNTIME_URL ||
-  'http://localhost:3000'
+function getBaseURL() {
+  const url =
+    process.env.BETTER_AUTH_URL ||
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+    process.env.VERCEL_URL ||
+    process.env.V0_RUNTIME_URL
+
+  if (url) {
+    return url.startsWith('http') ? url : `https://${url}`
+  }
+
+  const isProd =
+    process.env.NODE_ENV === 'production' ||
+    process.env.VERCEL_ENV === 'production'
+  if (isProd) {
+    throw new Error('BETTER_AUTH_URL or a Vercel environment URL is required in production environment.')
+  }
+
+  return 'http://localhost:3000'
+}
+const baseURL = getBaseURL()
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: 'pg' }),
-  baseURL: baseURL.startsWith('http') ? baseURL : `https://${baseURL}`,
+  baseURL,
   trustedOrigins: [
     'http://localhost:3000',
     ...runtimeOrigins,

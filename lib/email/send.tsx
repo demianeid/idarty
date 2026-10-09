@@ -39,7 +39,21 @@ export async function sendTransactionalEmail(input: {
         : input.template === 'reminder'
           ? <BookingReminderEmail locale={locale} url={input.url} startsAt={input.startsAt ?? new Date().toISOString()} />
           : <ResetPasswordEmail locale={locale} url={input.url} />
-  const html = await render(element)
+  const rawHtml = await render(element)
+  // Sanitize React Email HTML output — strip patterns known to trigger Gmail's
+  // inbound spam filter before the message reaches the recipient's inbox.
+  const html = rawHtml
+    // 1. Replace XHTML DOCTYPE (contains external w3.org URL) with plain HTML5 DOCTYPE
+    .replace(/<!DOCTYPE[^>]*>/i, '<!DOCTYPE html>')
+    // 2. Strip MSO conditional comments (contain invisible Unicode hair-space chars &#8202;)
+    .replace(/<!--\[if[^\]]*]>[\s\S]*?<!\[endif\]-->/g, '')
+    // 3. Strip React server-rendering marker comments
+    .replace(/<!--\/?[$a-z]+-->/g, '')
+    // 4. Strip Apple/MSO-specific meta tags
+    .replace(/<meta name="x-apple-disable-message-reformatting"[^\/]*\/>/gi, '')
+    // 5. Strip residual mso- inline style properties
+    .replace(/\bmso-[\w-]+:[^;}"']+;?/g, '')
+  const text = await render(element, { plainText: true })
   const transporter = await getTransporter()
   if (!transporter) {
     console.error('[idarty] GMAIL_SMTP_USER or GMAIL_SMTP_APP_PASSWORD is not configured')
@@ -51,6 +65,11 @@ export async function sendTransactionalEmail(input: {
       to: input.to,
       subject: emailSubjects[locale][input.template],
       html,
+      text,
+    })
+    console.log('[email] Successfully handed off to SMTP.', {
+      messageId: info.messageId,
+      accepted: info.accepted
     })
     return info
   } catch (error) {
