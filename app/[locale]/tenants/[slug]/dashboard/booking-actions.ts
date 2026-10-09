@@ -1,6 +1,7 @@
 'use server'
 
 import { headers } from 'next/headers'
+import { revalidatePath } from 'next/cache'
 import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '@/lib/db'
@@ -35,6 +36,7 @@ export async function cancelBooking(input: z.infer<typeof inputSchema>) {
       idempotencyKey: `booking-cancellation/${booking[0].id}/${new Date().toISOString()}`,
     }).catch((error) => console.error('[idarty] booking cancellation failed', error))
   }
+  if (result.length) revalidatePath(`/${data.slug}/dashboard`)
   return result.length ? { ok: true as const } : { ok: false as const, message: 'Booking is no longer active' }
 }
 
@@ -51,5 +53,6 @@ export async function markNoShow(input: z.infer<typeof inputSchema>) {
       tenantId: access.tenant.id,
     }, await headers())
   }
+  if (result.length) revalidatePath(`/${data.slug}/dashboard`)
   return result.length ? { ok: true as const } : { ok: false as const, message: 'Booking is no longer active' }
 }

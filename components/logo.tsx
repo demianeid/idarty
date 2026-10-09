@@ -45,24 +45,18 @@ export function Logo({ locale = 'ar', height = 32, className = '' }: LogoProps) 
       aria-label={altText}
     >
       {/* Light-mode logo (visible by default, hidden in .dark) */}
-      <Image
+      <img
         src={lightSrc}
         alt={altText}
         height={effectiveHeight}
-        width={0}
-        style={{ width: 'auto' }}
-        className="h-full object-contain dark:hidden"
-        priority
+        className="h-full w-auto object-contain dark:hidden"
       />
       {/* Dark-mode logo (hidden by default, visible in .dark) */}
-      <Image
+      <img
         src={darkSrc}
         alt={altText}
         height={effectiveHeight}
-        width={0}
-        style={{ width: 'auto' }}
-        className="hidden h-full object-contain dark:block"
-        priority
+        className="hidden h-full w-auto object-contain dark:block"
       />
     </span>
   )
@@ -85,23 +79,17 @@ export function LogoIcon({ height = 32, className = '' }: LogoIconProps) {
       style={{ height }}
       aria-label="Idarty"
     >
-      <Image
+      <img
         src="/brand/icon-black.svg"
         alt="Idarty"
         height={height}
-        width={0}
-        style={{ width: 'auto' }}
-        className="h-full object-contain dark:hidden"
-        priority
+        className="h-full w-auto object-contain dark:hidden"
       />
-      <Image
+      <img
         src="/brand/icon-white.svg"
         alt="Idarty"
         height={height}
-        width={0}
-        style={{ width: 'auto' }}
-        className="hidden h-full object-contain dark:block"
-        priority
+        className="hidden h-full w-auto object-contain dark:block"
       />
     </span>
   )

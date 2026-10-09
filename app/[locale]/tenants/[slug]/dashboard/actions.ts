@@ -19,8 +19,8 @@ export async function updateService(formData: FormData) {
     await tx.update(serviceTranslations).set({ name: input.name, description: input.description ?? null }).where(and(eq(serviceTranslations.serviceId, input.serviceId), eq(serviceTranslations.tenantId, access.tenant.id), eq(serviceTranslations.locale, input.locale)))
   })
   revalidatePath(`/${input.locale}/tenants/${input.slug}/dashboard`)
-  revalidateTag(`tenant-public-${input.slug}-${input.locale}`, 'page')
-  revalidateTag(`tenant-services-${input.slug}-${input.locale}`, 'page')
+  revalidateTag(`tenant-public-${input.slug}-${input.locale}`, 'max')
+  revalidateTag(`tenant-services-${input.slug}-${input.locale}`, 'max')
   return { ok: true as const }
 }
 
@@ -29,8 +29,8 @@ export async function archiveService(formData: FormData) {
   const access = await requireTenantAccess(await headers(), input.slug, 'manager')
   await db.update(services).set({ isActive: false, deletedAt: new Date(), updatedAt: new Date() }).where(and(eq(services.id, input.serviceId), eq(services.tenantId, access.tenant.id), eq(services.isActive, true)))
   revalidatePath(`/${input.locale}/tenants/${input.slug}/dashboard`)
-  revalidateTag(`tenant-public-${input.slug}-${input.locale}`, 'page')
-  revalidateTag(`tenant-services-${input.slug}-${input.locale}`, 'page')
+  revalidateTag(`tenant-public-${input.slug}-${input.locale}`, 'max')
+  revalidateTag(`tenant-services-${input.slug}-${input.locale}`, 'max')
   return { ok: true as const }
 }
 
@@ -43,7 +43,7 @@ export async function createService(formData: FormData) {
     return created
   })
   revalidatePath(`/${input.locale}/tenants/${input.slug}/dashboard`)
-  revalidateTag(`tenant-public-${input.slug}-${input.locale}`, 'page')
-  revalidateTag(`tenant-services-${input.slug}-${input.locale}`, 'page')
+  revalidateTag(`tenant-public-${input.slug}-${input.locale}`, 'max')
+  revalidateTag(`tenant-services-${input.slug}-${input.locale}`, 'max')
   return { ok: true as const, id: service.id }
 }

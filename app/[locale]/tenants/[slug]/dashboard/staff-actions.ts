@@ -9,7 +9,26 @@ import { and, eq } from 'drizzle-orm'
 import { requireTenantAccess } from '@/lib/authz'
 import { staffAssignmentPatch, staffEditPatch } from '@/lib/phase-b-policy'
 
-const schema = z.object({ slug: z.string().min(1), locale: z.enum(['ar', 'en']), name: z.string().trim().min(2).max(80), email: z.string().email().optional().or(z.literal('')), phone: z.string().trim().max(30).optional() })
+// Auto-format Egyptian local numbers to E.164.
+// Empty string or omitted value is treated as null.
+const e164 = z
+  .string()
+  .trim()
+  .max(30)
+  .transform((v) => {
+    if (!v) return v
+    const cleaned = v.replace(/[\s-]/g, '') // Remove spaces and dashes
+    if (/^01[0125]\d{8}$/.test(cleaned)) {
+      return '+2' + cleaned // Prepend Egypt code
+    }
+    return cleaned
+  })
+  .refine((v) => v === '' || /^\+[1-9]\d{6,14}$/.test(v), {
+    message: 'Phone must be a valid local number (e.g. 010...) or international format (+...)',
+  })
+  .transform((v) => v || undefined)
+
+const schema = z.object({ slug: z.string().min(1), locale: z.enum(['ar', 'en']), name: z.string().trim().min(2).max(80), email: z.string().email().optional().or(z.literal('')), phone: e164.optional() })
 
 const idSchema = z.object({ slug: z.string().min(1), locale: z.enum(['ar', 'en']), staffId: z.string().uuid() })
 

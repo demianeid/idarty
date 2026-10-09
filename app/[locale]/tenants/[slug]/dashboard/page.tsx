@@ -16,7 +16,7 @@ import { StaffForm } from '@/components/staff-form'
 import { StaffEditForm } from '@/components/staff-edit-form'
 import { StaffArchiveButton } from '@/components/staff-archive-button'
 import { StaffServicesForm } from '@/components/staff-services-form'
-import { DateOverrideForm } from '@/components/date-override-form'
+import { DateOverrideForm, DateOverrideDeleteButton } from '@/components/date-override-form'
 import { SignOutButton } from '@/components/sign-out-button'
 import { dateOverrides, staff, staffServices, staffTranslations, tenantTranslations, workingHours } from '@/lib/db/schema'
 import { BrandingForm } from '@/components/branding-form'
@@ -53,8 +53,8 @@ export default async function TenantDashboard(props: { params: Promise<{ locale:
           </div>
           <h1 className="text-2xl font-bold">{rtl ? 'حسابك معلق' : 'Account Suspended'}</h1>
           <p className="text-ink-muted">
-            {rtl 
-              ? 'تم تعليق مساحة العمل هذه. يرجى التواصل مع الدعم الفني لاستعادة الوصول.' 
+            {rtl
+              ? 'تم تعليق مساحة العمل هذه. يرجى التواصل مع الدعم الفني لاستعادة الوصول.'
               : 'This workspace has been suspended. Please contact support to restore access.'}
           </p>
           <div className="pt-4">
@@ -63,6 +63,18 @@ export default async function TenantDashboard(props: { params: Promise<{ locale:
         </div>
       </div>
     )
+  }
+
+  const statusColors: Record<string, string> = {
+    confirmed: 'bg-[#eaf8f1] text-[#24865b]',
+    cancelled: 'bg-[#fdf2f2] text-[#b42318]',
+    no_show: 'bg-[#f1f5f9] text-[#475569]'
+  }
+
+  const statusText: Record<string, { ar: string; en: string }> = {
+    confirmed: { ar: 'مؤكد', en: 'Confirmed' },
+    cancelled: { ar: 'ملغى', en: 'Cancelled' },
+    no_show: { ar: 'لم يحضر', en: 'No-show' }
   }
 
   const startOfDay = new Date()
@@ -130,11 +142,11 @@ export default async function TenantDashboard(props: { params: Promise<{ locale:
       </aside>
       <section className="min-w-0 flex-1 p-6 sm:p-10">
         <header className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-sm font-medium text-ink-muted">{access.session.user.name}</p><h1 className="mt-2 text-3xl font-semibold tracking-tight">{t.title}</h1><p className="mt-2 text-sm text-ink-muted">{t.subtitle}</p></div><div className="flex items-center gap-3">{isAdmin && <a href={`/${locale}/admin`} className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-bold text-amber-700 outline-none transition hover:bg-amber-200 focus-visible:ring-2 focus-visible:ring-amber-500">{locale === 'ar' ? 'الإدارة' : 'Admin'}</a>}<span className="rounded-full bg-[#eaf8f1] px-3 py-1.5 text-xs font-semibold text-[#24865b]">{access.membership.role}</span><SignOutButton label={rtl ? 'تسجيل الخروج' : 'Sign out'} /></div></header>
-        
+
         {tab === 'overview' && (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="mt-9 grid gap-4 sm:grid-cols-3"><Stat icon={<CalendarDays className="h-5 w-5" />} label={t.appointments} value={String(appointmentCount[0]?.value ?? 0)} /><Stat icon={<Users className="h-5 w-5" />} label={t.customers} value={String(customerCount[0]?.value ?? 0)} /><Stat icon={<ClipboardList className="h-5 w-5" />} label={t.services} value={String(serviceCount[0]?.value ?? 0)} /></div>
-            
+
             <div className="mt-6 rounded-3xl border border-border bg-paper p-6 sm:p-8 shadow-float">
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
@@ -145,7 +157,7 @@ export default async function TenantDashboard(props: { params: Promise<{ locale:
                   <span className="text-xs font-bold text-brand-teal">{checklist.filter((item) => item.done).length} / {checklist.length}</span>
                 </div>
               </div>
-              
+
               <div className="mt-6 h-2 w-full overflow-hidden rounded-full bg-[#f0f2f5]">
                 <div className="h-full bg-brand-teal transition-all duration-500" style={{ width: `${(checklist.filter(i => i.done).length / checklist.length) * 100}%` }} />
               </div>
@@ -161,8 +173,8 @@ export default async function TenantDashboard(props: { params: Promise<{ locale:
                 ))}
               </div>
             </div>
-            <div className="mt-6 rounded-3xl border border-border bg-paper p-6 shadow-float"><h2 className="text-lg font-semibold">{t.appointments}</h2><div className="mt-6 space-y-3">{todayBookings.length === 0 ? <div className="rounded-2xl border border-dashed border-[#dfe4ee] px-5 py-12 text-center text-sm text-ink-muted">{t.empty}</div> : todayBookings.map((booking) => <div key={booking.id} className="flex items-center justify-between rounded-2xl bg-surface px-4 py-4"><div><p className="font-semibold">{booking.name}</p><p className="mt-1 text-xs text-ink-muted">{new Intl.DateTimeFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { hour: 'numeric', minute: '2-digit' }).format(booking.startsAt)}</p></div><div className="flex items-center gap-2"><span className="rounded-full bg-[#eaf8f1] px-3 py-1 text-xs font-semibold text-[#24865b]">{booking.status}</span>{booking.status === 'confirmed' && <BookingStatusActions slug={slug} bookingId={booking.id} locale={locale} />}</div></div>)}</div></div>
-            <div className="mt-6 rounded-3xl border border-border bg-paper p-6 shadow-float"><div className="flex items-center justify-between gap-3"><div><h2 className="text-lg font-semibold">{locale === 'ar' ? 'المواعيد القادمة' : 'Upcoming bookings'}</h2><p className="mt-1 text-sm text-ink-muted">{locale === 'ar' ? 'نظرة على الأيام السبعة القادمة.' : 'A view of the next seven days.'}</p></div><span className="rounded-full bg-[#fff5e8] px-3 py-1 text-xs font-semibold text-[#b86a12]">{upcomingBookings.length}</span></div><div className="mt-5 space-y-2">{upcomingBookings.length === 0 ? <div className="rounded-2xl border border-dashed border-[#dfe4ee] px-5 py-10 text-center text-sm text-ink-muted">{locale === 'ar' ? 'لا توجد مواعيد قادمة.' : 'No upcoming bookings.'}</div> : upcomingBookings.map((booking) => <div key={booking.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-surface px-4 py-3"><div><p className="font-semibold">{booking.name}</p><p className="mt-1 text-xs text-ink-muted">{new Intl.DateTimeFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(booking.startsAt)}</p></div><div className="flex items-center gap-2"><span className="rounded-full bg-[#eaf8f1] px-3 py-1 text-xs font-semibold text-[#24865b]">{booking.status}</span>{booking.status === 'confirmed' && <BookingStatusActions slug={slug} bookingId={booking.id} locale={locale} />}</div></div>)}</div></div>
+            <div className="mt-6 rounded-3xl border border-border bg-paper p-6 shadow-float"><h2 className="text-lg font-semibold">{t.appointments}</h2><div className="mt-6 space-y-3">{todayBookings.length === 0 ? <div className="rounded-2xl border border-dashed border-[#dfe4ee] px-5 py-12 text-center text-sm text-ink-muted">{t.empty}</div> : todayBookings.map((booking) => <div key={booking.id} className="flex items-center justify-between rounded-2xl bg-surface px-4 py-4"><div><p className="font-semibold">{booking.name}</p><p className="mt-1 text-xs text-ink-muted">{new Intl.DateTimeFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { hour: 'numeric', minute: '2-digit' }).format(booking.startsAt)}</p></div><div className="flex items-center gap-3"><span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColors[booking.status] ?? statusColors.confirmed}`}>{statusText[booking.status]?.[locale] ?? booking.status}</span>{booking.status === 'confirmed' && <BookingStatusActions slug={slug} bookingId={booking.id} locale={locale} />}</div></div>)}</div></div>
+            <div className="mt-6 rounded-3xl border border-border bg-paper p-6 shadow-float"><div className="flex items-center justify-between gap-3"><div><h2 className="text-lg font-semibold">{locale === 'ar' ? 'المواعيد القادمة' : 'Upcoming bookings'}</h2><p className="mt-1 text-sm text-ink-muted">{locale === 'ar' ? 'نظرة على الأيام السبعة القادمة.' : 'A view of the next seven days.'}</p></div><span className="rounded-full bg-[#fff5e8] px-3 py-1 text-xs font-semibold text-[#b86a12]">{upcomingBookings.length}</span></div><div className="mt-5 space-y-2">{upcomingBookings.length === 0 ? <div className="rounded-2xl border border-dashed border-[#dfe4ee] px-5 py-10 text-center text-sm text-ink-muted">{locale === 'ar' ? 'لا توجد مواعيد قادمة.' : 'No upcoming bookings.'}</div> : upcomingBookings.map((booking) => <div key={booking.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-surface px-4 py-3"><div><p className="font-semibold">{booking.name}</p><p className="mt-1 text-xs text-ink-muted">{new Intl.DateTimeFormat(locale === 'ar' ? 'ar-EG' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(booking.startsAt)}</p></div><div className="flex items-center gap-3"><span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColors[booking.status] ?? statusColors.confirmed}`}>{statusText[booking.status]?.[locale] ?? booking.status}</span>{booking.status === 'confirmed' && <BookingStatusActions slug={slug} bookingId={booking.id} locale={locale} />}</div></div>)}</div></div>
           </div>
         )}
 
@@ -190,7 +202,7 @@ export default async function TenantDashboard(props: { params: Promise<{ locale:
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="mt-9 rounded-3xl border border-border bg-paper p-6 shadow-float"><div className="flex items-center justify-between"><div><h2 className="text-lg font-semibold">{locale === 'ar' ? 'الفريق' : 'Team'}</h2><p className="mt-1 text-sm text-ink-muted">{locale === 'ar' ? 'أضف أعضاء الفريق الذين يقدمون الخدمات.' : 'Add the people who provide your services.'}</p></div><span className="rounded-full bg-[#f0faf9] px-3 py-1 text-xs font-semibold text-brand-teal">{staffRows.length}</span></div><div className="mt-5 space-y-2">{staffRows.map((person) => <div key={person.id} className="flex items-center justify-between gap-3 rounded-2xl bg-surface px-4 py-3"><div><p className="font-semibold">{person.name ?? (locale === 'ar' ? 'عضو فريق' : 'Team member')}</p><p className="mt-1 text-xs text-ink-muted">{person.email ?? person.phone ?? ''}</p></div><div className="flex items-center gap-3"><StaffEditForm slug={slug} locale={locale} staff={{ id: person.id, name: person.name ?? '', email: person.email ?? '', phone: person.phone ?? '' }} /><StaffArchiveButton slug={slug} locale={locale} staffId={person.id} /></div><StaffServicesForm slug={slug} locale={locale} staffId={person.id} services={serviceRows.map((service) => ({ id: service.id, name: service.name ?? (rtl ? 'خدمة' : 'Service') }))} selected={assignmentRows.filter((assignment) => assignment.staffId === person.id).map((assignment) => assignment.serviceId)} /></div>)}</div><StaffForm locale={locale} slug={slug} /></div>
             <div className="mt-6 rounded-3xl border border-border bg-paper p-6 shadow-float"><h2 className="text-lg font-semibold">{locale === 'ar' ? 'ساعات العمل' : 'Working hours'}</h2><p className="mt-1 text-sm text-ink-muted">{locale === 'ar' ? 'حدد الأوقات العامة المتاحة للحجز.' : 'Set the general hours available for bookings.'}</p><WorkingHoursForm locale={locale} slug={slug} hours={hoursRows} /></div>
-            <div className="mt-6 rounded-3xl border border-border bg-paper p-6 shadow-float"><h2 className="text-lg font-semibold">{locale === 'ar' ? 'استثناءات المواعيد' : 'Date overrides'}</h2><p className="mt-1 text-sm text-ink-muted">{locale === 'ar' ? 'أضف العطلات أو ساعات العمل الخاصة.' : 'Add holidays or custom hours.'}</p><div className="mt-5 space-y-2">{overrideRows.map((override) => <div key={override.id} className="flex items-center justify-between rounded-2xl bg-surface px-4 py-3"><div><p className="font-semibold">{override.label ?? (override.kind === 'closed' ? (locale === 'ar' ? 'مغلق' : 'Closed') : (locale === 'ar' ? 'ساعات مخصصة' : 'Custom hours'))}</p><p className="mt-1 text-xs text-ink-muted">{override.startDate} → {override.endDate}{override.startTime ? ` · ${override.startTime}–${override.endTime}` : ''}</p></div></div>)}</div><DateOverrideForm locale={locale} slug={slug} /></div>
+            <div className="mt-6 rounded-3xl border border-border bg-paper p-6 shadow-float"><h2 className="text-lg font-semibold">{locale === 'ar' ? 'استثناءات المواعيد' : 'Date overrides'}</h2><p className="mt-1 text-sm text-ink-muted">{locale === 'ar' ? 'أضف العطلات أو ساعات العمل الخاصة.' : 'Add holidays or custom hours.'}</p><div className="mt-5 space-y-2">{overrideRows.map((override) => <div key={override.id} className="flex items-center justify-between rounded-2xl bg-surface px-4 py-3"><div><p className="font-semibold">{override.label ?? (override.kind === 'closed' ? (locale === 'ar' ? 'مغلق' : 'Closed') : (locale === 'ar' ? 'ساعات مخصصة' : 'Custom hours'))}</p><p className="mt-1 text-xs text-ink-muted">{override.startDate} → {override.endDate}{override.startTime ? ` · ${override.startTime}–${override.endTime}` : ''}</p></div><DateOverrideDeleteButton locale={locale} slug={slug} overrideId={override.id} /></div>)}</div><DateOverrideForm locale={locale} slug={slug} /></div>
           </div>
         )}
 
@@ -201,7 +213,7 @@ export default async function TenantDashboard(props: { params: Promise<{ locale:
               <p className="mt-1 text-sm text-ink-muted">{locale === 'ar' ? 'قم بتحديث اسم مساحة عملك ونوع نشاطك.' : 'Update your workspace name and business type.'}</p>
               <WorkspaceSettingsForm locale={locale} slug={slug} currentName={tenantTranslation?.name ?? access.tenant.slug} currentType={isBusinessType(access.tenant.businessType) ? access.tenant.businessType : 'other'} />
             </div>
-            
+
             <div className="rounded-3xl border border-border bg-paper p-6 shadow-float">
               <h2 className="text-lg font-semibold">{locale === 'ar' ? 'الهوية البصرية' : 'Branding'}</h2>
               <p className="mt-1 text-sm text-ink-muted">{locale === 'ar' ? 'اختر ألوان مساحة عملك وشعارك.' : 'Customize your workspace logo and color palette.'}</p>

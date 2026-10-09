@@ -14,7 +14,11 @@ const bookingSchema = z.object({
   locale: z.enum(['ar', 'en']),
   serviceId: z.string().uuid(),
   fullName: z.string().trim().min(2).max(120),
-  phone: z.string().trim().min(7).max(30),
+  phone: z.string().trim().max(30).transform((v) => {
+    const cleaned = v.replace(/[\s-]/g, '')
+    if (/^01[0125]\d{8}$/.test(cleaned)) return '+2' + cleaned
+    return cleaned
+  }),
   email: z.string().email().optional().or(z.literal('')),
   startsAt: z.string().datetime({ offset: true }),
 })
@@ -49,7 +53,7 @@ export async function createPublicBooking(input: z.infer<typeof bookingSchema>) 
   }
   const end = new Date(start.getTime() + service.durationMin * 60_000)
   const requestedDate = start.toISOString().slice(0, 10)
-  const availableSlots = await getAvailableSlots(data.slug, requestedDate)
+  const availableSlots = await getAvailableSlots(data.slug, requestedDate, data.serviceId)
   if (!availableSlots.includes(start.toISOString())) {
     const suggestions = availableSlots.filter(s => new Date(s) > start).slice(0, 3)
     return { ok: false as const, message: data.locale === 'ar' ? 'هذا الوقت لم يعد متاحاً. اختر وقتاً آخر.' : 'That time is no longer available. Choose another time.', suggestions }

@@ -20,7 +20,7 @@ export async function updateTenantWebsite(formData: FormData) {
   })
   revalidatePath(`/${input.locale}/tenants/${input.slug}`)
   revalidatePath(`/${input.locale}/tenants/${input.slug}/settings`)
-  revalidateTag(`tenant-public-${input.slug}-${input.locale}`, 'page')
-  revalidateTag(`tenant-services-${input.slug}-${input.locale}`, 'page')
+  revalidateTag(`tenant-public-${input.slug}-${input.locale}`, 'max')
+  revalidateTag(`tenant-services-${input.slug}-${input.locale}`, 'max')
   return { ok: true as const }
 }

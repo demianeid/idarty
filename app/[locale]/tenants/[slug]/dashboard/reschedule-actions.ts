@@ -1,6 +1,7 @@
 'use server'
 
 import { headers } from 'next/headers'
+import { revalidatePath } from 'next/cache'
 import { and, eq, ne } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '@/lib/db'
@@ -51,5 +52,6 @@ export async function rescheduleBooking(input: z.infer<typeof inputSchema>) {
       idempotencyKey: `booking-reschedule/${data.bookingId}/${start.toISOString()}`,
     }).catch((error) => console.error('[idarty] booking reschedule failed', error))
   }
+  revalidatePath(`/${data.slug}/dashboard`)
   return { ok: true as const }
 }

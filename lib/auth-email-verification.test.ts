@@ -46,6 +46,7 @@ describe('email verification explicit opt-in', () => {
   it('requires email verification by default (no SKIP_EMAIL_VERIFICATION)', async () => {
     delete process.env.SKIP_EMAIL_VERIFICATION
     vi.stubEnv('NODE_ENV', 'production')
+    vi.stubEnv('BETTER_AUTH_URL', 'https://test.example.com')
 
     const { auth } = await import('./auth')
     expect((auth as any)._config.emailAndPassword.requireEmailVerification).toBe(true)

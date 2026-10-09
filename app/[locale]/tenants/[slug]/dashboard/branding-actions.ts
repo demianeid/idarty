@@ -31,7 +31,7 @@ export async function saveBrandingColors(input: z.infer<typeof schema>) {
 
   revalidatePath(`/${data.locale}/tenants/${data.slug}/dashboard`)
   revalidatePath(`/${data.locale}/tenants/${data.slug}`)
-  revalidateTag(`tenant-public-${data.slug}-${data.locale}`, 'page')
+  revalidateTag(`tenant-public-${data.slug}-${data.locale}`, 'max')
 
   return { ok: true as const }
 }
