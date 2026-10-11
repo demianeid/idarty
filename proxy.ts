@@ -58,8 +58,14 @@ export async function proxy(request: NextRequest) {
     return response
   }
   const response = NextResponse.next()
-  response.headers.set('x-idarty-locale', pathname.split('/')[1] || defaultLocale)
-  return response
+  const pathLocale = pathname.split('/')[1] || defaultLocale
+  // Forward the locale to the app on the REQUEST so the root layout can set the
+  // document-level <html lang> and dir correctly for both Arabic and English.
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-idarty-locale', pathLocale)
+  const localized = NextResponse.next({ request: { headers: requestHeaders } })
+  localized.headers.set('x-idarty-locale', pathLocale)
+  return localized
 }
 
 export const config = { matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'] }

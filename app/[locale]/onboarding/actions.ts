@@ -10,11 +10,12 @@ import { memberships, serviceTranslations, services, staff, staffServices, staff
 import { businessTypes, defaultServiceName, defaultServicePreset, businessTypeLabel } from '@/lib/business-types'
 import { logAudit } from '@/lib/audit'
 
-type OnboardingErrorCode = 'UNAUTHENTICATED' | 'INVALID_SLUG' | 'SLUG_RESERVED' | 'SLUG_TAKEN' | 'UNKNOWN'
+type OnboardingErrorCode = 'UNAUTHENTICATED' | 'UNVERIFIED' | 'INVALID_SLUG' | 'SLUG_RESERVED' | 'SLUG_TAKEN' | 'UNKNOWN'
 export type OnboardingResult = { code: OnboardingErrorCode; message: { ar: string; en: string } } | null
 
 const messages: Record<OnboardingErrorCode, { ar: string; en: string }> = {
   UNAUTHENTICATED: { ar: 'انتهت الجلسة. سجّل الدخول مرة أخرى.', en: 'Your session expired. Please sign in again.' },
+  UNVERIFIED: { ar: 'يرجى تأكيد بريدك الإلكتروني أولاً.', en: 'Please verify your email address first.' },
   INVALID_SLUG: { ar: 'استخدم رابطاً قصيراً صالحاً بحروف إنجليزية وأرقام وشرطات.', en: 'Use a valid URL with lowercase letters, numbers, and hyphens.' },
   SLUG_RESERVED: { ar: 'هذا الرابط محجوز. اختر رابطاً آخر.', en: 'That URL is reserved. Choose another one.' },
   SLUG_TAKEN: { ar: 'هذا الرابط مستخدم بالفعل. اختر رابطاً آخر.', en: 'That URL is already taken. Choose another one.' },
@@ -38,6 +39,7 @@ const schema = z.object({
 export async function createTenant(_previous: OnboardingResult, formData: FormData): Promise<OnboardingResult> {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session) return failure('UNAUTHENTICATED')
+  if (session.user.emailVerified !== true) return failure('UNVERIFIED')
 
   const parsed = schema.safeParse({
     name: formData.get('name'),

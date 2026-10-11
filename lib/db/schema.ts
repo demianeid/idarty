@@ -396,5 +396,15 @@ export const devEmailOutbox = pgTable('dev_email_outbox', {
   createdAt: tsz('created_at').notNull().defaultNow(),
 })
 
+// --- Website Builder -------------------------------------------------------
+export const websiteConfig = pgTable('website_config', {
+  tenantId: uuid('tenant_id').primaryKey().references(() => tenants.id, { onDelete: 'cascade' }),
+  draft: jsonb('draft').$type<Record<string, unknown>>().notNull().default({}),
+  published: jsonb('published').$type<Record<string, unknown>>(),
+  publishedAt: tsz('published_at'),
+  publishedBy: text('published_by').references(() => user.id, { onDelete: 'set null' }),
+  updatedAt: tsz('updated_at').notNull().defaultNow(),
+})
+
 export type Locale = (typeof appLocale.enumValues)[number]
 export type MemberRole = (typeof memberRole.enumValues)[number]

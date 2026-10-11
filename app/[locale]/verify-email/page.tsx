@@ -18,8 +18,11 @@ export default async function VerifyEmailPage({
   const locale: Locale = isLocale(rawLocale) ? rawLocale : 'ar'
 
   const session = await getSession(await headers())
-  // If the user already has a session and is already emailVerified, redirect immediately to onboarding
-  if (session?.user?.emailVerified) {
+  // Only redirect if the session belongs to the SAME email being verified.
+  // A stale session from a different user must not authorize this flow.
+  const sessionEmail = session?.user?.email
+  const isSameUser = email && sessionEmail && sessionEmail === email
+  if (isSameUser && session?.user?.emailVerified) {
     redirect(safeNextPath(next, `/${locale}/onboarding`))
   }
 

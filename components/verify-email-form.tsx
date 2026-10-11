@@ -138,14 +138,22 @@ export function VerifyEmailCard({
     return () => clearInterval(timer)
   }, [cooldown, currentEmail])
 
-  // Polling: detect if the user clicked the verification link in another tab or device
+  // Polling: detect if the user clicked the verification link in another tab or device.
+  // Only redirect when the session belongs to the SAME email that was submitted for
+  // verification. A stale session from a different user must not authorize this flow.
   useEffect(() => {
     if (isVerified) return
 
     const pollInterval = setInterval(async () => {
       try {
         const session = await authClient.getSession()
-        if (session.data?.user && (session.data.user as any).emailVerified) {
+        const sessionUser = session.data?.user
+        if (
+          sessionUser &&
+          (sessionUser as any).emailVerified &&
+          initialEmail &&
+          sessionUser.email === initialEmail
+        ) {
           setIsVerified(true)
           clearInterval(pollInterval)
           setTimeout(() => {
@@ -159,7 +167,7 @@ export function VerifyEmailCard({
     }, 4000)
 
     return () => clearInterval(pollInterval)
-  }, [isVerified, nextPath, router])
+  }, [isVerified, nextPath, router, initialEmail])
 
   // Resend verification email handler
   async function handleResend() {

@@ -134,7 +134,7 @@ export function BrandingForm({
           </div>
         </label>
         <label className="block">
-          <span className="text-xs font-semibold text-[#647087]">{rtl ? 'اللون الثانوي' : 'Accent color'}</span>
+          <span className="text-xs font-semibold text-[#647087]">{rtl ? 'لون خلفية الموقع' : 'Website background color'}</span>
           <div className="mt-2 flex items-center gap-3 rounded-xl border border-[#e1e5ed] bg-paper px-3 py-2">
             <input
               type="color"

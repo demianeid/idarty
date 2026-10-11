@@ -1,12 +1,14 @@
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { and, count, desc, eq, gte, isNull, lt, not } from 'drizzle-orm'
-import { CalendarDays, ClipboardList, Users, Settings2 } from 'lucide-react'
+import { CalendarDays, ClipboardList, Users, Settings2, Sparkles } from 'lucide-react'
 import { requireTenantAccess } from '@/lib/authz'
 import { db } from '@/lib/db'
 import { bookings, customers, services } from '@/lib/db/schema'
 import type { Locale } from '@/lib/i18n'
-import { serviceTranslations } from '@/lib/db/schema'
+import { serviceTranslations, websiteConfig } from '@/lib/db/schema'
+import { safeParseWebsiteConfig } from '@/lib/website-config'
+import { WebsiteEditor } from '@/components/website-editor'
 import { ServiceForm } from '@/components/service-form'
 import { ServiceArchiveButton } from '@/components/service-archive-button'
 import { ServiceEditForm } from '@/components/service-edit-form'
@@ -18,6 +20,7 @@ import { StaffArchiveButton } from '@/components/staff-archive-button'
 import { StaffServicesForm } from '@/components/staff-services-form'
 import { DateOverrideForm, DateOverrideDeleteButton } from '@/components/date-override-form'
 import { SignOutButton } from '@/components/sign-out-button'
+import { LocaleSwitcher } from '@/components/locale-switcher'
 import { dateOverrides, staff, staffServices, staffTranslations, tenantTranslations, workingHours } from '@/lib/db/schema'
 import { BrandingForm } from '@/components/branding-form'
 import { WorkspaceSettingsForm } from '@/components/workspace-settings-form'
@@ -99,6 +102,9 @@ export default async function TenantDashboard(props: { params: Promise<{ locale:
   ])
 
   const tenantTheme = (access.tenant as any).theme as Record<string, string> | null ?? {}
+  const websiteConfigRow = await db.query.websiteConfig.findFirst({ where: eq(websiteConfig.tenantId, access.tenant.id) })
+  const draftWebsiteConfig = websiteConfigRow ? safeParseWebsiteConfig(websiteConfigRow.draft) : null
+  const publishedWebsiteConfig = websiteConfigRow?.published ? safeParseWebsiteConfig(websiteConfigRow.published) : null
 
   const checklist = [
     { done: serviceCount[0]?.value > 0, label: rtl ? 'أضف خدمتك الأولى' : 'Add your first service', href: '?tab=services' },
@@ -109,6 +115,7 @@ export default async function TenantDashboard(props: { params: Promise<{ locale:
 
   const nav = [
     { id: 'overview', icon: <CalendarDays aria-hidden="true" className="h-4 w-4" />, label: locale === 'ar' ? 'نظرة عامة' : 'Overview' },
+    { id: 'website', icon: <Sparkles aria-hidden="true" className="h-4 w-4" />, label: locale === 'ar' ? 'الموقع' : 'Website' },
     { id: 'customers', icon: <Users aria-hidden="true" className="h-4 w-4" />, label: t.customers },
     { id: 'services', icon: <ClipboardList aria-hidden="true" className="h-4 w-4" />, label: t.services },
     { id: 'team', icon: <Users aria-hidden="true" className="h-4 w-4" />, label: locale === 'ar' ? 'الفريق والجدول' : 'Team & Schedule' },
@@ -141,7 +148,7 @@ export default async function TenantDashboard(props: { params: Promise<{ locale:
         )}
       </aside>
       <section className="min-w-0 flex-1 p-6 sm:p-10">
-        <header className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-sm font-medium text-ink-muted">{access.session.user.name}</p><h1 className="mt-2 text-3xl font-semibold tracking-tight">{t.title}</h1><p className="mt-2 text-sm text-ink-muted">{t.subtitle}</p></div><div className="flex items-center gap-3">{isAdmin && <a href={`/${locale}/admin`} className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-bold text-amber-700 outline-none transition hover:bg-amber-200 focus-visible:ring-2 focus-visible:ring-amber-500">{locale === 'ar' ? 'الإدارة' : 'Admin'}</a>}<span className="rounded-full bg-[#eaf8f1] px-3 py-1.5 text-xs font-semibold text-[#24865b]">{access.membership.role}</span><SignOutButton label={rtl ? 'تسجيل الخروج' : 'Sign out'} /></div></header>
+        <header className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-sm font-medium text-ink-muted">{access.session.user.name}</p><h1 className="mt-2 text-3xl font-semibold tracking-tight">{t.title}</h1><p className="mt-2 text-sm text-ink-muted">{t.subtitle}</p></div><div className="flex items-center gap-3">{isAdmin && <a href={`/${locale}/admin`} className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-bold text-amber-700 outline-none transition hover:bg-amber-200 focus-visible:ring-2 focus-visible:ring-amber-500">{locale === 'ar' ? 'الإدارة' : 'Admin'}</a>}<span className="rounded-full bg-[#eaf8f1] px-3 py-1.5 text-xs font-semibold text-[#24865b]">{access.membership.role}</span><LocaleSwitcher currentLocale={locale} /><SignOutButton label={rtl ? 'تسجيل الخروج' : 'Sign out'} /></div></header>
 
         {tab === 'overview' && (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -192,6 +199,43 @@ export default async function TenantDashboard(props: { params: Promise<{ locale:
           </div>
         )}
 
+        {tab === 'website' && (
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold tracking-tight">
+                {locale === 'ar' ? 'محرر الموقع' : 'Website Builder'}
+              </h2>
+              <p className="mt-1 text-sm text-ink-muted">
+                {locale === 'ar'
+                  ? 'تخصيص موقعك العام وتحديد المحتوى والأقسام الظاهرة.'
+                  : 'Customize your public website and manage visible content and sections.'}
+              </p>
+            </div>
+            <WebsiteEditor
+              locale={locale}
+              slug={slug}
+              initialConfig={draftWebsiteConfig}
+              publishedConfig={publishedWebsiteConfig}
+              tenant={{
+                name: tenantTranslation?.name ?? access.tenant.slug,
+                tagline: tenantTranslation?.tagline ?? '',
+                description: tenantTranslation?.description ?? '',
+                address: tenantTranslation?.address ?? '',
+                phoneE164: access.tenant.phoneE164 ?? '',
+                email: access.tenant.email ?? '',
+                currency: access.tenant.currency,
+                theme: tenantTheme,
+              }}
+              services={serviceRows.map((s) => ({
+                id: s.id,
+                name: s.name,
+                durationMin: s.durationMin,
+                priceAmount: String(s.priceAmount),
+              }))}
+              canPublish={['admin', 'owner'].includes(access.membership.role)}
+            />
+          </div>
+        )}
         {tab === 'services' && (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="mt-9 rounded-3xl border border-border bg-paper p-6 shadow-float"><div className="flex items-center justify-between gap-3"><div><h2 className="text-lg font-semibold">{t.services}</h2><p className="mt-1 text-sm text-ink-muted">{locale === 'ar' ? 'أدر الخدمات التي يمكن حجزها من موقعك.' : 'Manage services customers can book.'}</p></div><span className="rounded-full bg-[#f0faf9] px-3 py-1 text-xs font-semibold text-brand-teal">{serviceRows.length}</span></div><div className="mt-5 space-y-2">{serviceRows.map((service) => <div key={service.id} className="flex items-center justify-between gap-3 rounded-2xl bg-surface px-4 py-3"><div><p className="font-semibold">{service.name ?? (locale === 'ar' ? 'خدمة بدون ترجمة' : 'Untitled service')}</p><p className="mt-1 text-xs text-ink-muted">{service.durationMin} {locale === 'ar' ? 'دقيقة' : 'min'} · {service.priceAmount} {access.tenant.currency}</p></div><div className="flex items-center gap-3"><ServiceEditForm slug={slug} locale={locale} service={{ id: service.id, name: service.name ?? '', durationMin: service.durationMin, priceAmount: String(service.priceAmount) }} /><ServiceArchiveButton slug={slug} locale={locale} serviceId={service.id} /></div></div>)}</div><ServiceForm locale={locale} slug={slug} /></div>

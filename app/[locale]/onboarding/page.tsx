@@ -28,7 +28,8 @@ export default async function OnboardingPage({
     redirect(`/${locale}/login?next=/${locale}/onboarding`)
   }
 
-  if (session.user.emailVerified === false) {
+  // Only allow access when email is explicitly verified; treat undefined/false as unverified
+  if (session.user.emailVerified !== true) {
     redirect(`/${locale}/verify-email?email=${encodeURIComponent(session.user.email)}`)
   }
 

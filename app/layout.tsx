@@ -1,7 +1,9 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
+import { headers } from 'next/headers'
 import { IBM_Plex_Sans_Arabic, IBM_Plex_Sans } from 'next/font/google'
 import { ToastProvider } from '@/components/toast'
+import { isLocale, localeDirection } from '@/lib/i18n'
 import './globals.css'
 
 const arabicFont = IBM_Plex_Sans_Arabic({
@@ -32,13 +34,21 @@ export const viewport: Viewport = {
   ],
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // Resolve the document language from the request. The proxy forwards the URL's
+  // locale segment as `x-idarty-locale`, so Arabic routes get lang="ar" dir="rtl"
+  // and English routes get lang="en" dir="ltr" on the real <html> element.
+  // Non-localized routes (/, /login, /signup, 404) fall back to the default.
+  const headerList = await headers()
+  const headerLocale = headerList.get('x-idarty-locale') ?? undefined
+  const locale = isLocale(headerLocale) ? headerLocale : 'ar'
+
   return (
-    <html lang="ar" dir="rtl">
+    <html lang={locale} dir={localeDirection(locale)}>
       <body className={`${arabicFont.variable} ${sansFont.variable} antialiased`}>
         <ToastProvider>{children}</ToastProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}

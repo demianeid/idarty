@@ -83,14 +83,23 @@ export function AuthForm({ mode, locale = 'ar', nextPath = `/${locale}/dashboard
     }
     
     if (mode === 'signup') {
-      const session = await authClient.getSession()
-      if (session.data?.user && (session.data.user as any).emailVerified !== false) {
+      // Better Auth does NOT create a session after signup when requireEmailVerification=true.
+      // authClient.getSession() may return a stale session from a previous sign-in (e.g. demo user).
+      // Use the signup result to determine the NEW user's verification status.
+      const newUser = result.data?.user
+      if (newUser && (newUser as any).emailVerified === true) {
         router.push(nextPath)
       } else {
         router.push(`/${locale}/verify-email?email=${encodeURIComponent(email)}`)
       }
     } else {
-      router.push(nextPath)
+      // Sign-in: check email verification before allowing access
+      const session = await authClient.getSession()
+      if (session.data?.user && (session.data.user as any).emailVerified !== true) {
+        router.push(`/${locale}/verify-email?email=${encodeURIComponent(email)}`)
+      } else {
+        router.push(nextPath)
+      }
     }
     router.refresh()
   }
